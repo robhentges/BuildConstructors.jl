@@ -9,7 +9,7 @@ function deserialize(description, tag_set)
 	return c, renamed_res, description.support
 end
 
-function build_model_constuctor(tag_physical, tag_set; database)
+function build_model_constructor(tag_physical, tag_set; database)
 
 	appendix = NamedTuple()
 	# phys
@@ -34,7 +34,7 @@ function build_model_constuctor(tag_physical, tag_set; database)
 	name_of_fs = pars_mm |> keys .|> string
 	appendix = merge(appendix, pars_mm)
 	# 
-	ConstructorOfMistureModel(
+	ConstructorOfMixtureModel(
 		CPHYS(names_physical..., (1.1, 2.5)),
 		CRES(names_res..., support_res),
 		CBG(names_bg..., support_bg),

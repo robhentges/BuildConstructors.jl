@@ -1,11 +1,11 @@
-struct ConstructorOfMistureModel{PHYS,RES,BG}
+struct ConstructorOfMixtureModel{PHYS,RES,BG}
 	model_p::PHYS
 	model_r::RES
 	model_b::BG
 	name_of_fs::String
 end
 
-function build_model(c::ConstructorOfMistureModel, pars)
+function build_model(c::ConstructorOfMixtureModel, pars)
 	p = build_model(c.model_p, pars)
 	r = build_model(c.model_r, pars)
 	b = build_model(c.model_b, pars)

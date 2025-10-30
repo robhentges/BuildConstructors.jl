@@ -14,10 +14,11 @@ export ConstructorOfPol1
 include("primitives.jl")
 
 
-export ConstructorOfMistureModel
+export ConstructorOfMixtureModel
 include("mixture_model.jl")
 
 
+export build_model
 export build_model_constructor
 include("build_model_constructor.jl")
 
