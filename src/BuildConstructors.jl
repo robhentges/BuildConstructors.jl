@@ -15,7 +15,7 @@ include("primitives.jl")
 
 
 export ConstructorOfMistureModel
-include("misture_model.jl")
+include("mixture_model.jl")
 
 
 export build_model_constructor
