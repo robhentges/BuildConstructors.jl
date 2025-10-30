@@ -1,5 +1,3 @@
-
-
 struct ConstructorOfBW
 	name_of_m::String
 	name_of_Γ::String
@@ -11,6 +9,9 @@ function build_model(c::ConstructorOfBW, pars)
 	Γ = getproperty(pars, Symbol(c.name_of_Γ))
 	NumericallyIntegrable(e->1/abs2(m^2-e^2 - 1im*m*Γ), c.support)
 end
+
+
+
 
 
 struct ConstructorOfGaussian{T}
@@ -33,6 +34,11 @@ function build_model(c::ConstructorOfGaussian{<:Number}, pars)
 	σ = getproperty(pars, Symbol(c.name_of_σ))
 	truncated(Normal(μ, σ), c.support[1], c.support[2])
 end
+
+
+
+
+
 
 
 struct ConstructorOfPol1
