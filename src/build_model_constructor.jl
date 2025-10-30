@@ -15,7 +15,7 @@ function deserialize(description, tag_set)
     names_res = (names_base .* "_" .* tag_set)
     renamed_res = NamedTuple{Tuple(Symbol.(names_res))}(Tuple(values_res))
     # normalize support to Tuple
-    support_tuple = support_val isa Tuple ? support_val : (support_val[1], support_val[2])
+    support_tuple = Tuple(support_val)
     return c, renamed_res, support_tuple
 end
 
