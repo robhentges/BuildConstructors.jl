@@ -1,6 +1,6 @@
 {
   "my_model": {
-    "type": "ConstructorOfMixtureModel",
+    "type": "ConstructorOfPRBModel",
     "model_p": {
       "type": "ConstructorOfBW",
       "description_of_m": { "type": "Fixed", "value": 2.1 },

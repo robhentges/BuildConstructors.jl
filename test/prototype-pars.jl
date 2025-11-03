@@ -1,6 +1,7 @@
 using Distributions
 using NumericalDistributions
 using DistributionsHEP
+using OrderedCollections
 
 
 abstract type AbstractParameter end
@@ -76,14 +77,14 @@ end
 
 
 
-struct ConstructorOfMixtureModel{PHYS,RES,BG,T}
+struct ConstructorOfPRBModel{PHYS,RES,BG,T}
 	model_p::PHYS
 	model_r::RES
 	model_b::BG
 	description_of_fs::T
 end
 
-function build_model(c::ConstructorOfMixtureModel, pars)
+function build_model(c::ConstructorOfPRBModel, pars)
 	p = build_model(c.model_p, pars)
 	r = build_model(c.model_r, pars)
 	b = build_model(c.model_b, pars)
@@ -92,7 +93,7 @@ function build_model(c::ConstructorOfMixtureModel, pars)
 	MixtureModel([r_conv_p, b], [fs, 1-fs])
 end
 
-cM_running_σ = ConstructorOfMixtureModel(
+cM_running_σ = ConstructorOfPRBModel(
     ConstructorOfBW(Fixed(2.1), Fixed(0.1), (1.1, 2.5)),
     ConstructorOfGaussian(Fixed(0), Running("σ"), (1.1, 2.5)),
     ConstructorOfPol1(Fixed(0.1), (1.1, 2.5)),
@@ -101,6 +102,53 @@ cM_running_σ = ConstructorOfMixtureModel(
 
 model = build_model(cM_running_σ, (σ = 0.1,))
 @test pdf(model, 1.1) ≈ 0.32142857142857145
+
+
+
+
+struct ConstructorOfTwoComponentModel{C1,C2,T}
+	model_c1::C1
+	model_c2::C2
+	description_of_fs1::T
+end
+
+
+function build_model(c::ConstructorOfTwoComponentModel, pars)
+	c1 = build_model(c.model_c1, pars)
+	c2  = build_model(c.model_c2, pars)
+	fs1 = value(c.description_of_fs1; pars)
+	MixtureModel([c1, c2], [fs1, 1-fs1])
+end
+
+
+serialize(c::ConstructorOfTwoComponentModel; pars) = LittleDict(
+    "type" => "ConstructorOfTwoComponentModel",
+    "model_c1" => serialize(c.model_c1; pars),
+    "model_c2" => serialize(c.model_c2; pars),
+    "description_of_fs1" => serialize(c.description_of_fs1; pars))
+
+function deserialize(::Type{<:ConstructorOfTwoComponentModel}, all_fields)
+    appendix = NamedTuple()
+    # 
+    model_c1_dict = all_fields["model_c1"]
+    type_c1 = model_c1_dict["type"] |> Meta.parse |> eval
+    model_c1, appendix_c1 = deserialize(type_c1, model_c1_dict)
+    appendix = merge(appendix, appendix_c1)
+    # 
+    model_c2_dict = all_fields["model_c2"]
+    type_c2 = model_c2_dict["type"] |> Meta.parse |> eval
+    model_c2, appendix_c2 = deserialize(type_c2, model_c2_dict)
+    appendix = merge(appendix, appendix_c2)
+    # 
+    description_of_fs1_dict = all_fields["description_of_fs1"]
+    type_fs1 = description_of_fs1_dict["type"] |> Meta.parse |> eval
+    description_of_fs1, appendix_fs1 = deserialize(type_fs1, description_of_fs1_dict)
+    appendix = merge(appendix, appendix_c2)
+    # 
+    ConstructorOfTwoComponentModel(model_c1, model_c2, description_of_fs1), appendix
+end
+
+
 
 
 
@@ -133,9 +181,6 @@ string_type = all_fields["type"]
 evaluated_type = eval(Meta.parse(string_type))
 
 # c, starting_pars = build_constructor(evaluated_type, all_fields)
-
-build_constructor(ConstructorOfBW, data["my_model"]["model_p"])
-
 
 function deserialize(::Type{<:Fixed}, all_fields)
     value = all_fields["value"]
@@ -255,7 +300,7 @@ end
 
 
 
-function deserialize(::Type{<:ConstructorOfMixtureModel}, all_fields)
+function deserialize(::Type{<:ConstructorOfPRBModel}, all_fields)
     appendix = NamedTuple()
 
     
@@ -279,14 +324,14 @@ function deserialize(::Type{<:ConstructorOfMixtureModel}, all_fields)
     description_of_fs, appendix_fs = deserialize(type_fs, description_of_fs)
     appendix = merge(appendix, appendix_fs)
 
-    ConstructorOfMixtureModel(model_p, model_r, model_b, description_of_fs), appendix
+    ConstructorOfPRBModel(model_p, model_r, model_b, description_of_fs), appendix
 end
 
 
 let 
-    c, s = deserialize(ConstructorOfMixtureModel, data["my_model"])
+    c, s = deserialize(ConstructorOfPRBModel, data["my_model"])
     @test s == (σ = 0.1,)
-    @test c isa ConstructorOfMixtureModel
+    @test c isa ConstructorOfPRBModel
 end
 
 
@@ -295,14 +340,7 @@ end
 
 #  proper serialization
 
-open("test-serialization.json", "w") do f
-    JSON.print(f, Dict(
-        "my_model" => serialize(cM_running_σ; pars)
-    ))
-end
 
-
-using OrderedCollections
 serialize(c::Fixed; pars) = LittleDict("type" => "Fixed", "value" => c.value)
 serialize(c::Running; pars) = LittleDict("type" => "Running", "name" => c.name, "starting_value" => value(c; pars))
 
@@ -333,8 +371,8 @@ serialize(c::ConstructorOfPol1; pars) = LittleDict(
 # test here
 # serialize(cM_running_σ.model_b; pars = (σ = 0.1,))
 
-serialize(c::ConstructorOfMixtureModel; pars) = LittleDict(
-    "type" => "ConstructorOfMixtureModel",
+serialize(c::ConstructorOfPRBModel; pars) = LittleDict(
+    "type" => "ConstructorOfPRBModel",
     "model_p" => serialize(c.model_p; pars),
     "model_r" => serialize(c.model_r; pars),
     "model_b" => serialize(c.model_b; pars),
@@ -344,8 +382,33 @@ serialize(c::ConstructorOfMixtureModel; pars) = LittleDict(
 serialize(cM_running_σ; pars = (σ = 0.1,))
 
 
-open("test-serialization.json", "w") do f
+open(joinpath(@__DIR__, "test-serialization.json"), "w") do f
     JSON.print(f, Dict(
         "my_model" => serialize(cM_running_σ; pars = (σ = 0.1,))
     ))
 end
+
+
+
+cM_running_σ = ConstructorOfPRBModel(
+    ConstructorOfBW(Fixed(2.1), Fixed(0.1), (1.1, 2.5)),
+    ConstructorOfGaussian(Fixed(0), Running("σ"), (1.1, 2.5)),
+    ConstructorOfPol1(Fixed(0.1), (1.1, 2.5)),
+    Fixed(0.5)
+)
+
+
+open("test-serialization-bins.json", "w") do f
+    JSON.print(f, Dict(
+        "bin1" => LittleDict(
+            "RES" => serialize(cM_running_σ; pars = (σ = 0.1,)),
+            "BG" => serialize(cM_running_σ; pars = (σ = 0.1,))
+        ),
+        "bin2" => LittleDict(
+            "RES" => serialize(cM_running_σ; pars = (σ = 0.1,)),
+            "BG" => serialize(cM_running_σ; pars = (σ = 0.1,))
+        )
+    ))
+end
+
+
