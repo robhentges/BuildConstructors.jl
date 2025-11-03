@@ -1,0 +1,56 @@
+{
+  "bin1": {
+    "RES": {
+      "type": "ConstructorOfTwoComponentModel",
+      "model_c1": {
+        "type": "ConstructorOfGaussian",
+        "description_of_μ": { "type": "Fixed", "value": 0.0 },
+        "description_of_σ": { "type": "Fixed", "value": 0.1 },
+        "support": [-0.6, 0.6]
+      },
+      "model_c2": {
+        "type": "ConstructorOfGaussian",
+        "description_of_μ": { "type": "Fixed", "value": 0.0 },
+        "description_of_σ": { "type": "Fixed", "value": 0.2 },
+        "support": [-0.6, 0.6]
+      },
+      "description_of_fs1": { "type": "Fixed", "value": 0.5 }
+    },
+    "BG": {
+      "type": "ConstructorOfPol1",
+      "description_of_c1": {
+        "type": "Running",
+        "name": "c1_bin1",
+        "starting_value": 0.1
+      },
+      "support": [1.1, 2.5]
+    }
+  },
+  "bin2": {
+    "RES": {
+      "type": "ConstructorOfTwoComponentModel",
+      "model_c1": {
+        "type": "ConstructorOfGaussian",
+        "description_of_μ": { "type": "Fixed", "value": 0.0 },
+        "description_of_σ": { "type": "Fixed", "value": 0.15 },
+        "support": [-0.6, 0.6]
+      },
+      "model_c2": {
+        "type": "ConstructorOfGaussian",
+        "description_of_μ": { "type": "Fixed", "value": 0.0 },
+        "description_of_σ": { "type": "Fixed", "value": 0.25 },
+        "support": [-0.6, 0.6]
+      },
+      "description_of_fs1": { "type": "Fixed", "value": 0.6 }
+    },
+    "BG": {
+      "type": "ConstructorOfPol1",
+      "description_of_c1": {
+        "type": "Running",
+        "name": "c1_bin2",
+        "starting_value": 0.2
+      },
+      "support": [1.1, 2.5]
+    }
+  }
+}

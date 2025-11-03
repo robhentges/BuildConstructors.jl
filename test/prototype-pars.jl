@@ -390,25 +390,42 @@ end
 
 
 
-cM_running_σ = ConstructorOfPRBModel(
-    ConstructorOfBW(Fixed(2.1), Fixed(0.1), (1.1, 2.5)),
-    ConstructorOfGaussian(Fixed(0), Running("σ"), (1.1, 2.5)),
-    ConstructorOfPol1(Fixed(0.1), (1.1, 2.5)),
+bin1_res = ConstructorOfTwoComponentModel(
+    ConstructorOfGaussian(Fixed(0), Fixed(0.1), (-0.6, 0.6)),
+    ConstructorOfGaussian(Fixed(0), Fixed(0.2), (-0.6, 0.6)),
     Fixed(0.5)
 )
 
+bin2_res = ConstructorOfTwoComponentModel(
+    ConstructorOfGaussian(Fixed(0), Fixed(0.15), (-0.6, 0.6)),
+    ConstructorOfGaussian(Fixed(0), Fixed(0.25), (-0.6, 0.6)),
+    Fixed(0.6)
+)
 
-open("test-serialization-bins.json", "w") do f
+bg_bin1 = ConstructorOfPol1(Running("c1_bin1"), (1.1, 2.5))
+bg_bin2 = ConstructorOfPol1(Running("c1_bin2"), (1.1, 2.5))
+
+
+open(joinpath(@__DIR__, "test-serialization-bins.json"), "w") do f
+    pars = (c1_bin1 = 0.1, c1_bin2 = 0.2)
     JSON.print(f, Dict(
         "bin1" => LittleDict(
-            "RES" => serialize(cM_running_σ; pars = (σ = 0.1,)),
-            "BG" => serialize(cM_running_σ; pars = (σ = 0.1,))
+            "RES" => serialize(bin1_res; pars = NamedTuple()),
+            "BG" => serialize(bg_bin1; pars)
         ),
         "bin2" => LittleDict(
-            "RES" => serialize(cM_running_σ; pars = (σ = 0.1,)),
-            "BG" => serialize(cM_running_σ; pars = (σ = 0.1,))
+            "RES" => serialize(bin2_res; pars = NamedTuple()),
+            "BG" => serialize(bg_bin2; pars)
         )
     ))
 end
 
 
+two_bins_data = open(io->JSON.parse(io), joinpath(@__DIR__, "test-serialization-bins.json"))
+
+let
+    all_fields = two_bins_data["bin1"]["BG"]
+    t = all_fields["type"] |> Meta.parse |> eval
+    c, s = deserialize(t, all_fields)
+    s
+end
