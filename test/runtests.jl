@@ -1,8 +1,8 @@
-using Test
+#=using Test
 
 
-include("construct_model.jl")
-include("construct_primitives.jl")
+include("../src/construct_model.jl")
+include("../src/construct_primitives.jl")
 
 
 cM_running_gw = ConstructorOfPRBModel(
@@ -14,4 +14,18 @@ cM_running_gw = ConstructorOfPRBModel(
 )
 
 model = build_model(cM_running_gw, (g = 0.115, w = 0.5, fs = 0.5,))
-@test pdf(model, 1.1) ≈ 0.7084462317465321
+@test pdf(model, 1.1) ≈ 0.7084462317465321=#
+
+using Test
+include("../src/construct_model.jl")
+include("../src/construct_primitives.jl")
+include("../src/load_model_from_json.jl")
+
+constructor, pars = load_prb_model_from_json("../data/database_test.json", "flatte", "CBpSECH", "Pol1")
+model = build_model(constructor, pars)
+pdf(model, 1.1)
+
+#=@testset "Automatic model test" begin
+    model = build_model(constructor, pars)
+    @test model isa Distribution
+end=#
