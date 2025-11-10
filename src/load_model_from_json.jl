@@ -16,9 +16,9 @@ function convert_database_to_prb(db, phys, res, bg)
         "model_b" => db["background"]["$(bg)"],
 
         # mixing fraction fs – here fixed to some value (you may choose)
-        "description_of_fs" => db["description_of_fs"], # OrderedDict("type" => "Fixed", "value" => 0.5),
+        "description_of_fs" => db["description_of_fs"],
 
-        # actual fit range — choose from physical part
+        # actual fit range — larger than from physical part
         "support" => db["support"]
     )
 end
