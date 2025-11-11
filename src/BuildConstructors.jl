@@ -7,19 +7,26 @@ using OrderedCollections
 using Parameters
 
 
-export ConstructorOfBW
-export ConstructorOfGaussian
-export ConstructorOfZeroGaussian
-export ConstructorOfPol1
-include("primitives.jl")
-
-
-export ConstructorOfMixtureModel
-include("mixture_model.jl")
-
-
+export Fixed
+export Running
+export serialize
+export deserialize
+export ConstructorOfPRBModel
 export build_model
-export build_model_constructor
-include("build_model_constructor.jl")
+include("construct_model.jl")
+
+
+export ConstructorOfBW
+export ConstructorOfBraaten
+export ConstructorOfCBpSECH
+export ConstructorOfGaussian
+export ConstructorOfPol1
+export ConstructorOfPol2
+include("construct_primitives.jl")
+
+
+export convert_database_to_prb
+export load_prb_model_from_json
+include("load_model_from_json.jl")
 
 end # module
