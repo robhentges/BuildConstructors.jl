@@ -44,54 +44,54 @@ serialize(c::ConstructorOfBW; pars) = LittleDict(
 
 ## Flatte model
 
-using X3872Flatte: AJψππ, FlatteModel
+# using X3872Flatte: AJψππ, FlatteModel
 
-struct ConstructorOfFlatte{T1<:AbstractParameter,T2<:AbstractParameter,T3<:AbstractParameter}
-	description_of_Ef::T1
-    description_of_g::T2
-	description_of_Γ0::T3
-	support::Tuple{Float64,Float64}
-end
+# struct ConstructorOfFlatte{T1<:AbstractParameter,T2<:AbstractParameter,T3<:AbstractParameter}
+# 	description_of_Ef::T1
+#     description_of_g::T2
+# 	description_of_Γ0::T3
+# 	support::Tuple{Float64,Float64}
+# end
 
-function build_model(c::ConstructorOfFlatte, pars)
-	Ef = value(c.description_of_Ef; pars)
-	g = value(c.description_of_g; pars)
-	Γ0 = value(c.description_of_Γ0; pars)
-	NumericallyIntegrable(e->abs2(AJψππ(FlatteModel(Ef, g, Γ0, 0.0, 0.0),e)), c.support) # support needs to be larger than fit range to avoid truncation effects
-end
-
-
-
-function deserialize(::Type{<:ConstructorOfFlatte}, all_fields)
-    appendix = NamedTuple()
-    # 
-    description_of_Ef_dict = all_fields["description_of_Ef"]
-    type_Ef = description_of_Ef_dict["type"] |> Meta.parse |> eval
-    description_of_Ef, appendix_Ef = deserialize(type_Ef, description_of_Ef_dict)
-    appendix = merge(appendix, appendix_Ef)
-    # 
-    description_of_g_dict = all_fields["description_of_g"]
-    type_g = description_of_g_dict["type"] |> Meta.parse |> eval
-    description_of_g, appendix_g = deserialize(type_g, description_of_g_dict)
-    appendix = merge(appendix, appendix_g)
-    # 
-    description_of_Γ0_dict = all_fields["description_of_Γ0"]
-    type_Γ0 = description_of_Γ0_dict["type"] |> Meta.parse |> eval
-    description_of_Γ0, appendix_Γ0 = deserialize(type_Γ0, description_of_Γ0_dict)
-    appendix = merge(appendix, appendix_Γ0)
-    # 
-    support = all_fields["support"] |> Tuple
-    return ConstructorOfFlatte(description_of_Ef, description_of_g, description_of_Γ0, support), appendix
-end
+# function build_model(c::ConstructorOfFlatte, pars)
+# 	Ef = value(c.description_of_Ef; pars)
+# 	g = value(c.description_of_g; pars)
+# 	Γ0 = value(c.description_of_Γ0; pars)
+# 	NumericallyIntegrable(e->abs2(AJψππ(FlatteModel(Ef, g, Γ0, 0.0, 0.0),e)), c.support) # support needs to be larger than fit range to avoid truncation effects
+# end
 
 
 
-serialize(c::ConstructorOfFlatte; pars) = LittleDict(
-    "type" => "ConstructorOfFlatte",
-    "description_of_Ef" => serialize(c.description_of_Ef; pars),
-    "description_of_g" => serialize(c.description_of_g; pars),
-    "description_of_Γ0" => serialize(c.description_of_Γ0; pars),
-    "support" => c.support)
+# function deserialize(::Type{<:ConstructorOfFlatte}, all_fields)
+#     appendix = NamedTuple()
+#     # 
+#     description_of_Ef_dict = all_fields["description_of_Ef"]
+#     type_Ef = description_of_Ef_dict["type"] |> Meta.parse |> eval
+#     description_of_Ef, appendix_Ef = deserialize(type_Ef, description_of_Ef_dict)
+#     appendix = merge(appendix, appendix_Ef)
+#     # 
+#     description_of_g_dict = all_fields["description_of_g"]
+#     type_g = description_of_g_dict["type"] |> Meta.parse |> eval
+#     description_of_g, appendix_g = deserialize(type_g, description_of_g_dict)
+#     appendix = merge(appendix, appendix_g)
+#     # 
+#     description_of_Γ0_dict = all_fields["description_of_Γ0"]
+#     type_Γ0 = description_of_Γ0_dict["type"] |> Meta.parse |> eval
+#     description_of_Γ0, appendix_Γ0 = deserialize(type_Γ0, description_of_Γ0_dict)
+#     appendix = merge(appendix, appendix_Γ0)
+#     # 
+#     support = all_fields["support"] |> Tuple
+#     return ConstructorOfFlatte(description_of_Ef, description_of_g, description_of_Γ0, support), appendix
+# end
+
+
+
+# serialize(c::ConstructorOfFlatte; pars) = LittleDict(
+#     "type" => "ConstructorOfFlatte",
+#     "description_of_Ef" => serialize(c.description_of_Ef; pars),
+#     "description_of_g" => serialize(c.description_of_g; pars),
+#     "description_of_Γ0" => serialize(c.description_of_Γ0; pars),
+#     "support" => c.support)
 
 
 ## Braaten model
@@ -232,6 +232,42 @@ serialize(c::ConstructorOfCBpSECH; pars) = LittleDict(
     "description_of_w" => serialize(c.description_of_w; pars),
     "support" => c.support)
 
+## Gaussian
+
+struct ConstructorOfGaussian{T1<:AbstractParameter,T2<:AbstractParameter}
+    description_of_μ::T1
+    description_of_σ::T2
+    support::Tuple{Float64,Float64}
+end
+
+function build_model(c::ConstructorOfGaussian, pars)
+    μ = value(c.description_of_μ; pars)
+    σ = value(c.description_of_σ; pars)
+    truncated(Normal(μ, σ), c.support[1], c.support[2])
+end
+
+function deserialize(::Type{<:ConstructorOfGaussian}, all_fields)
+    appendix = NamedTuple()
+    # 
+    description_of_μ_dict = all_fields["description_of_μ"]
+    type_μ = description_of_μ_dict["type"] |> Meta.parse |> eval
+    description_of_μ, appendix_μ = deserialize(type_μ, description_of_μ_dict)
+    appendix = merge(appendix, appendix_μ)
+    # 
+    description_of_σ_dict = all_fields["description_of_σ"]
+    type_σ = description_of_σ_dict["type"] |> Meta.parse |> eval
+    description_of_σ, appendix_σ = deserialize(type_σ, description_of_σ_dict)
+    appendix = merge(appendix, appendix_σ)
+    # 
+    support = all_fields["support"] |> Tuple
+    return ConstructorOfGaussian(description_of_μ, description_of_σ, support), appendix
+end
+
+serialize(c::ConstructorOfGaussian; pars) = LittleDict(
+    "type" => "ConstructorOfGaussian",
+    "description_of_μ" => serialize(c.description_of_μ; pars),
+    "description_of_σ" => serialize(c.description_of_σ; pars),
+    "support" => c.support)
 
 # Background
 
@@ -262,4 +298,41 @@ end
 serialize(c::ConstructorOfPol1; pars) = LittleDict(
     "type" => "ConstructorOfPol1",
     "description_of_c1C" => serialize(c.description_of_c1C; pars),
+    "support" => c.support)
+
+## 2nd order Chebyshev
+
+struct ConstructorOfPol2{T}
+    description_of_c1C::T
+    description_of_c2C::T
+    support::Tuple{Float64,Float64}
+end
+
+function build_model(c::ConstructorOfPol2, pars)
+    c1C = value(c.description_of_c1C; pars)
+    c2C = value(c.description_of_c2C; pars)
+    Chebyshev([1, c1C, c2C], c.support[1], c.support[2])
+end
+
+function deserialize(::Type{<:ConstructorOfPol2}, all_fields)
+    appendix = NamedTuple()
+    # 
+    description_of_c1C_dict = all_fields["description_of_c1C"]
+    type_c1C = description_of_c1C_dict["type"] |> Meta.parse |> eval
+    description_of_c1C, appendix_c1C = deserialize(type_c1C, description_of_c1C_dict)
+    appendix = merge(appendix, appendix_c1C)
+    # 
+    description_of_c2C_dict = all_fields["description_of_c2C"]
+    type_c2C = description_of_c2C_dict["type"] |> Meta.parse |> eval
+    description_of_c2C, appendix_c2C = deserialize(type_c2C, description_of_c2C_dict)
+    appendix = merge(appendix, appendix_c2C)
+    # 
+    support = all_fields["support"] |> Tuple
+    return ConstructorOfPol2(description_of_c1C, description_of_c2C, support), appendix
+end
+
+serialize(c::ConstructorOfPol2; pars) = LittleDict(
+    "type" => "ConstructorOfPol2",
+    "description_of_c1C" => serialize(c.description_of_c1C; pars),
+    "description_of_c2C" => serialize(c.description_of_c2C; pars),
     "support" => c.support)

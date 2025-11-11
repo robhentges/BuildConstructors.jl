@@ -32,6 +32,20 @@
         "starting_value": 1.88
       },
       "support": [-46.38, 52.57]
+    },
+    "braaten": {
+      "type": "ConstructorOfBraaten",
+      "description_of_γre": {
+        "type": "Running",
+        "name": "γre",
+        "starting_value": 1.0
+      },
+      "description_of_γim": {
+        "type": "Running",
+        "name": "γim",
+        "starting_value": 0.1
+      },
+      "support": [-46.38, 52.57]
     }
   },
   "resolution": {
@@ -80,6 +94,20 @@
         "type": "Running",
         "name": "c1C",
         "starting_value": 0.1
+      },
+      "support": [-46.38, 52.57]
+    },
+    "Pol2": {
+      "type": "ConstructorOfPol2",
+      "description_of_c1C": {
+        "type": "Running",
+        "name": "c1C",
+        "starting_value": 0.1
+      },
+      "description_of_c2C": {
+        "type": "Running",
+        "name": "c2C",
+        "starting_value": 0.2
       },
       "support": [-46.38, 52.57]
     }
