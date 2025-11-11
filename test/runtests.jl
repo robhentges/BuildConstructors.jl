@@ -140,3 +140,7 @@ end
     @test pdf(model1, 1.1) == 0.015948402929065703
     @test pdf(model2, 1.1) == 0.015948402929065703
 end
+
+@testset "Extend BuildConstructors" begin
+    include("test-extend.jl")
+end
