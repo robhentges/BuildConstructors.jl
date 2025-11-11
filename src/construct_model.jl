@@ -11,6 +11,10 @@ end
 value(p::Fixed; pars) = p.value
 value(p::Running; pars) = getproperty(pars, Symbol(p.name))
 
+# Auto-register built-in types
+register_type("Fixed", Fixed)
+register_type("Running", Running)
+
 
 struct ConstructorOfPRBModel{PHYS,RES,BG,T}
 	model_p::PHYS
@@ -48,22 +52,22 @@ function deserialize(::Type{<:ConstructorOfPRBModel}, all_fields)
 
     
     description_of_p = all_fields["model_p"]
-    type_p = description_of_p["type"] |> Meta.parse |> eval
+    type_p = _type_from_string(description_of_p["type"])
     model_p, appendix_p = deserialize(type_p, description_of_p)
     appendix = merge(appendix, appendix_p)
 
     description_of_r = all_fields["model_r"]
-    type_r = description_of_r["type"] |> Meta.parse |> eval
+    type_r = _type_from_string(description_of_r["type"])
     model_r, appendix_r = deserialize(type_r, description_of_r)
     appendix = merge(appendix, appendix_r)
 
     description_of_b = all_fields["model_b"]
-    type_b = description_of_b["type"] |> Meta.parse |> eval
+    type_b = _type_from_string(description_of_b["type"])
     model_b, appendix_b = deserialize(type_b, description_of_b)
     appendix = merge(appendix, appendix_b)
 
     description_of_fs = all_fields["description_of_fs"]
-    type_fs = description_of_fs["type"] |> Meta.parse |> eval
+    type_fs = _type_from_string(description_of_fs["type"])
     description_of_fs, appendix_fs = deserialize(type_fs, description_of_fs)
     appendix = merge(appendix, appendix_fs)
 
@@ -84,3 +88,6 @@ serialize(c::ConstructorOfPRBModel; pars) = LittleDict(
     "model_b" => serialize(c.model_b; pars),
     "description_of_fs" => serialize(c.description_of_fs; pars),
     "support" => c.support)
+
+# Auto-register ConstructorOfPRBModel
+register_type("ConstructorOfPRBModel", ConstructorOfPRBModel)

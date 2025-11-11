@@ -20,12 +20,12 @@ function deserialize(::Type{<:ConstructorOfBW}, all_fields)
     appendix = NamedTuple()
     # 
     description_of_m_dict = all_fields["description_of_m"]
-    type_m = description_of_m_dict["type"] |> Meta.parse |> eval
+    type_m = _type_from_string(description_of_m_dict["type"])
     description_of_m, appendix_m = deserialize(type_m, description_of_m_dict)
     appendix = merge(appendix, appendix_m)
     # 
     description_of_Γ_dict = all_fields["description_of_Γ"]
-    type_Γ = description_of_Γ_dict["type"] |> Meta.parse |> eval
+    type_Γ = _type_from_string(description_of_Γ_dict["type"])
     description_of_Γ, appendix_Γ = deserialize(type_Γ, description_of_Γ_dict)
     appendix = merge(appendix, appendix_Γ)
     # 
@@ -115,12 +115,12 @@ function deserialize(::Type{<:ConstructorOfBraaten}, all_fields)
     appendix = NamedTuple()
     # 
     description_of_γre_dict = all_fields["description_of_γre"]
-    type_γre = description_of_γre_dict["type"] |> Meta.parse |> eval
+    type_γre = _type_from_string(description_of_γre_dict["type"])
     description_of_γre, appendix_γre = deserialize(type_γre, description_of_γre_dict)
     appendix = merge(appendix, appendix_γre)
     # 
     description_of_γim_dict = all_fields["description_of_γim"]
-    type_γim = description_of_γim_dict["type"] |> Meta.parse |> eval
+    type_γim = _type_from_string(description_of_γim_dict["type"])
     description_of_γim, appendix_γim = deserialize(type_γim, description_of_γim_dict)
     appendix = merge(appendix, appendix_γim)
     # 
@@ -177,42 +177,42 @@ function deserialize(::Type{<:ConstructorOfCBpSECH}, all_fields)
     appendix = NamedTuple()
     # 
     description_of_σ1_dict = all_fields["description_of_σ1"]
-    type_σ1 = description_of_σ1_dict["type"] |> Meta.parse |> eval
+    type_σ1 = _type_from_string(description_of_σ1_dict["type"])
     description_of_σ1, appendix_σ1 = deserialize(type_σ1, description_of_σ1_dict)
     appendix = merge(appendix, appendix_σ1)
     # 
     description_of_c0_dict = all_fields["description_of_c0"]
-    type_c0 = description_of_c0_dict["type"] |> Meta.parse |> eval
+    type_c0 = _type_from_string(description_of_c0_dict["type"])
     description_of_c0, appendix_c0 = deserialize(type_c0, description_of_c0_dict)
     appendix = merge(appendix, appendix_c0)
     # 
     description_of_c1_dict = all_fields["description_of_c1"]
-    type_c1 = description_of_c1_dict["type"] |> Meta.parse |> eval
+    type_c1 = _type_from_string(description_of_c1_dict["type"])
     description_of_c1, appendix_c1 = deserialize(type_c1, description_of_c1_dict)
     appendix = merge(appendix, appendix_c1)
     # 
     description_of_c2_dict = all_fields["description_of_c2"]
-    type_c2 = description_of_c2_dict["type"] |> Meta.parse |> eval
+    type_c2 = _type_from_string(description_of_c2_dict["type"])
     description_of_c2, appendix_c2 = deserialize(type_c2, description_of_c2_dict)
     appendix = merge(appendix, appendix_c2)
     # 
     description_of_n_dict = all_fields["description_of_n"]
-    type_n = description_of_n_dict["type"] |> Meta.parse |> eval
+    type_n = _type_from_string(description_of_n_dict["type"])
     description_of_n, appendix_n = deserialize(type_n, description_of_n_dict)
     appendix = merge(appendix, appendix_n)
     # 
     description_of_s_dict = all_fields["description_of_s"]
-    type_s = description_of_s_dict["type"] |> Meta.parse |> eval
+    type_s = _type_from_string(description_of_s_dict["type"])
     description_of_s, appendix_s = deserialize(type_s, description_of_s_dict)
     appendix = merge(appendix, appendix_s)
     # 
     description_of_fr1_dict = all_fields["description_of_fr1"]
-    type_fr1 = description_of_fr1_dict["type"] |> Meta.parse |> eval
+    type_fr1 = _type_from_string(description_of_fr1_dict["type"])
     description_of_fr1, appendix_fr1 = deserialize(type_fr1, description_of_fr1_dict)
     appendix = merge(appendix, appendix_fr1)
     # 
     description_of_w_dict = all_fields["description_of_w"]
-    type_w = description_of_w_dict["type"] |> Meta.parse |> eval
+    type_w = _type_from_string(description_of_w_dict["type"])
     description_of_w, appendix_w = deserialize(type_w, description_of_w_dict)
     appendix = merge(appendix, appendix_w)
     # 
@@ -250,12 +250,12 @@ function deserialize(::Type{<:ConstructorOfGaussian}, all_fields)
     appendix = NamedTuple()
     # 
     description_of_μ_dict = all_fields["description_of_μ"]
-    type_μ = description_of_μ_dict["type"] |> Meta.parse |> eval
+    type_μ = _type_from_string(description_of_μ_dict["type"])
     description_of_μ, appendix_μ = deserialize(type_μ, description_of_μ_dict)
     appendix = merge(appendix, appendix_μ)
     # 
     description_of_σ_dict = all_fields["description_of_σ"]
-    type_σ = description_of_σ_dict["type"] |> Meta.parse |> eval
+    type_σ = _type_from_string(description_of_σ_dict["type"])
     description_of_σ, appendix_σ = deserialize(type_σ, description_of_σ_dict)
     appendix = merge(appendix, appendix_σ)
     # 
@@ -287,7 +287,7 @@ function deserialize(::Type{<:ConstructorOfPol1}, all_fields)
     appendix = NamedTuple()
     # 
     description_of_c1C_dict = all_fields["description_of_c1C"]
-    type_c1C = description_of_c1C_dict["type"] |> Meta.parse |> eval
+    type_c1C = _type_from_string(description_of_c1C_dict["type"])
     description_of_c1C, appendix_c1C = deserialize(type_c1C, description_of_c1C_dict)
     appendix = merge(appendix, appendix_c1C)
     # 
@@ -318,12 +318,12 @@ function deserialize(::Type{<:ConstructorOfPol2}, all_fields)
     appendix = NamedTuple()
     # 
     description_of_c1C_dict = all_fields["description_of_c1C"]
-    type_c1C = description_of_c1C_dict["type"] |> Meta.parse |> eval
+    type_c1C = _type_from_string(description_of_c1C_dict["type"])
     description_of_c1C, appendix_c1C = deserialize(type_c1C, description_of_c1C_dict)
     appendix = merge(appendix, appendix_c1C)
     # 
     description_of_c2C_dict = all_fields["description_of_c2C"]
-    type_c2C = description_of_c2C_dict["type"] |> Meta.parse |> eval
+    type_c2C = _type_from_string(description_of_c2C_dict["type"])
     description_of_c2C, appendix_c2C = deserialize(type_c2C, description_of_c2C_dict)
     appendix = merge(appendix, appendix_c2C)
     # 
@@ -336,3 +336,11 @@ serialize(c::ConstructorOfPol2; pars) = LittleDict(
     "description_of_c1C" => serialize(c.description_of_c1C; pars),
     "description_of_c2C" => serialize(c.description_of_c2C; pars),
     "support" => c.support)
+
+# Auto-register built-in constructor types
+register_type("ConstructorOfBW", ConstructorOfBW)
+register_type("ConstructorOfBraaten", ConstructorOfBraaten)
+register_type("ConstructorOfCBpSECH", ConstructorOfCBpSECH)
+register_type("ConstructorOfGaussian", ConstructorOfGaussian)
+register_type("ConstructorOfPol1", ConstructorOfPol1)
+register_type("ConstructorOfPol2", ConstructorOfPol2)

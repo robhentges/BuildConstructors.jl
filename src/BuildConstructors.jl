@@ -7,6 +7,9 @@ using OrderedCollections
 using Parameters
 
 
+export register_type
+include("register_type.jl")
+
 export Fixed
 export Running
 export serialize
