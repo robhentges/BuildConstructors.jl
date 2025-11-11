@@ -34,7 +34,9 @@ value(p::Running; pars) = getproperty(pars, Symbol(p.name))
 ```
 
 ---
+
 ### Complete models used in fits are assembled via:
+
 ```julia
 struct ConstructorOfPRBModel{PHYS,RES,BG,T}
     model_p::PHYS       # Physical model component
@@ -51,7 +53,7 @@ model = build_model(constructor, parameter_values)
 ---
 ## Adding a New Model
 
-To implement a new model (physical, resolution, or background), a ```struct```, ```build_model``` function, ```deserialize``` and ```serialize``` methods need to be defined in ```construct_primitives.jl``` following the pattern:
+To implement a new model (physical, resolution, or background), define a `struct`, `build_model` function, `deserialize` and `serialize` methods:
 
 ```julia
 struct ConstructorOfMyModel{T1<:AbstractParameter,T2<:AbstractParameter}
@@ -68,15 +70,18 @@ end
 
 function deserialize(::Type{<:ConstructorOfMyModel}, all_fields)
     appendix = NamedTuple()
-
-    desc_a, app_a = deserialize(eval(Meta.parse(all_fields["description_of_a"]["type"])), all_fields["description_of_a"])
+    
+    desc_a_dict = all_fields["description_of_a"]
+    type_a = _type_from_string(desc_a_dict["type"])
+    desc_a, app_a = deserialize(type_a, desc_a_dict)
     appendix = merge(appendix, app_a)
-
-    desc_b, app_b = deserialize(eval(Meta.parse(all_fields["description_of_b"]["type"])), all_fields["description_of_b"])
+    
+    desc_b_dict = all_fields["description_of_b"]
+    type_b = _type_from_string(desc_b_dict["type"])
+    desc_b, app_b = deserialize(type_b, desc_b_dict)
     appendix = merge(appendix, app_b)
-
+    
     support = all_fields["support"] |> Tuple
-
     return ConstructorOfMyModel(desc_a, desc_b, support), appendix
 end
 
@@ -87,6 +92,8 @@ serialize(c::ConstructorOfMyModel; pars) = LittleDict(
     "support" => c.support
 )
 ```
+
+**Note:** If you define custom types for parameter or model constructors, you must register them using `register!(TypeName)` so they can be properly deserialized.
 
 
 

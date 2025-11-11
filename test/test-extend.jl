@@ -21,7 +21,7 @@ BuildConstructors.value(c::FirstParameter; pars) = pars |> first
 BuildConstructors.serialize(c::FirstParameter; pars) = Dict("type" => "FirstParameter")
 
 # Register the custom type for deserialization
-BuildConstructors.register_type("FirstParameter", FirstParameter)
+BuildConstructors.register!(FirstParameter)
 
 # Implement deserialize for FirstParameter
 function BuildConstructors.deserialize(::Type{FirstParameter}, all_fields)

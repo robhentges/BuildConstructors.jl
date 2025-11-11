@@ -7,7 +7,7 @@ using OrderedCollections
 using Parameters
 
 
-export register_type
+export register!
 include("register_type.jl")
 
 export Fixed

@@ -338,9 +338,9 @@ serialize(c::ConstructorOfPol2; pars) = LittleDict(
     "support" => c.support)
 
 # Auto-register built-in constructor types
-register_type("ConstructorOfBW", ConstructorOfBW)
-register_type("ConstructorOfBraaten", ConstructorOfBraaten)
-register_type("ConstructorOfCBpSECH", ConstructorOfCBpSECH)
-register_type("ConstructorOfGaussian", ConstructorOfGaussian)
-register_type("ConstructorOfPol1", ConstructorOfPol1)
-register_type("ConstructorOfPol2", ConstructorOfPol2)
+register!(ConstructorOfBW)
+register!(ConstructorOfBraaten)
+register!(ConstructorOfCBpSECH)
+register!(ConstructorOfGaussian)
+register!(ConstructorOfPol1)
+register!(ConstructorOfPol2)

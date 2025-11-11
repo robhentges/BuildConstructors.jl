@@ -12,8 +12,8 @@ value(p::Fixed; pars) = p.value
 value(p::Running; pars) = getproperty(pars, Symbol(p.name))
 
 # Auto-register built-in types
-register_type("Fixed", Fixed)
-register_type("Running", Running)
+register!(Fixed)
+register!(Running)
 
 
 struct ConstructorOfPRBModel{PHYS,RES,BG,T}
@@ -90,4 +90,4 @@ serialize(c::ConstructorOfPRBModel; pars) = LittleDict(
     "support" => c.support)
 
 # Auto-register ConstructorOfPRBModel
-register_type("ConstructorOfPRBModel", ConstructorOfPRBModel)
+register!(ConstructorOfPRBModel)
