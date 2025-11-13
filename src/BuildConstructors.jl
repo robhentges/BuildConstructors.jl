@@ -6,16 +6,17 @@ using DistributionsHEP
 using OrderedCollections
 using Parameters
 
-
-export register!
 include("register_type.jl")
 
+# generic methods
 export Fixed
 export Running
 export serialize
 export deserialize
-export ConstructorOfPRBModel
 export build_model
+
+# combined model
+export ConstructorOfPRBModel
 include("construct_model.jl")
 
 

@@ -93,7 +93,7 @@ serialize(c::ConstructorOfMyModel; pars) = LittleDict(
 )
 ```
 
-**Note:** If you define custom types for parameter or model constructors, you must register them using `register!(TypeName)` so they can be properly deserialized.
+**Note:** If you define custom types for parameter or model constructors, you must register them using `BuildConstructors.register!(TypeName)` so they can be properly deserialized.
 
 
 
