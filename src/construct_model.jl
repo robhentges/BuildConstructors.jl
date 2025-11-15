@@ -16,7 +16,27 @@ register!(Fixed)
 register!(Running)
 
 
-struct ConstructorOfPRBModel{PHYS,RES,BG,T}
+
+
+
+function deserialize(::Type{<:Fixed}, all_fields)
+    value = all_fields["value"]
+    Fixed(value), NamedTuple()
+end
+
+function deserialize(::Type{<:Running}, all_fields)
+    name = all_fields["name"]
+    starting_value = all_fields["starting_value"]
+    Running(name), NamedTuple{(Symbol(name),)}((starting_value,))
+end
+
+
+
+
+
+abstract type AbstractConstructor end
+
+struct ConstructorOfPRBModel{PHYS,RES,BG,T} <: AbstractConstructor
 	model_p::PHYS
 	model_r::RES
 	model_b::BG
@@ -32,19 +52,6 @@ function build_model(c::ConstructorOfPRBModel, pars)
 	fs = value(c.description_of_fs; pars)
 	truncated(MixtureModel([r_conv_p, b], [fs, 1-fs]), c.support[1], c.support[2])
 end
-
-
-function deserialize(::Type{<:Fixed}, all_fields)
-    value = all_fields["value"]
-    Fixed(value), NamedTuple()
-end
-
-function deserialize(::Type{<:Running}, all_fields)
-    name = all_fields["name"]
-    starting_value = all_fields["starting_value"]
-    Running(name), NamedTuple{(Symbol(name),)}((starting_value,))
-end
-
 
 
 function deserialize(::Type{<:ConstructorOfPRBModel}, all_fields)
