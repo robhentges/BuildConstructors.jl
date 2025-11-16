@@ -1,10 +1,9 @@
-
-# Auto-register built-in types
+# parameter types
 register!(Fixed)
 register!(Running)
 register!(Parameter)
 
-# Auto-register built-in constructor types
+# thin wrappers of primitives
 register!(ConstructorOfBW)
 register!(ConstructorOfBraaten)
 register!(ConstructorOfCBpSECH)
@@ -12,9 +11,8 @@ register!(ConstructorOfGaussian)
 register!(ConstructorOfPol1)
 register!(ConstructorOfPol2)
 
-# Auto-register ConstructorOfPRBModel
+# complex model
 register!(ConstructorOfPRBModel)
-
 
 
 function deserialize(::Type{<:Fixed}, all_fields)

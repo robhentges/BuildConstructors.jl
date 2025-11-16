@@ -6,7 +6,6 @@ using DistributionsHEP
 using OrderedCollections
 using Parameters
 
-
 # generic methods
 export Fixed
 export Running
@@ -20,7 +19,6 @@ export release!
 export update!
 export pickup
 include("fix-release-pickup-update.jl")
-
 
 include("abstract-constructor.jl")
 
