@@ -19,8 +19,6 @@ export update!
 export pickup
 include("fix-release-pickup-update.jl")
 
-include("abstract-constructor.jl")
-
 export build_model
 export ConstructorOfBW
 export ConstructorOfBraaten
@@ -28,6 +26,7 @@ export ConstructorOfCBpSECH
 export ConstructorOfGaussian
 export ConstructorOfPol1
 export ConstructorOfPol2
+include("abstract-constructor.jl")
 include("primitives.jl")
 
 # combined model
