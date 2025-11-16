@@ -10,13 +10,13 @@ cg_des = deserialize(ConstructorOfGaussian, cg_ser)[1]
 
 @test cg_des == cg
 
-
+# as a test, create a new type and try to serialize/deserialize it
 struct FirstParameter <: BuildConstructors.AbstractParameter end
 BuildConstructors.value(c::FirstParameter; pars) = pars |> first
 BuildConstructors.serialize(c::FirstParameter; pars) = Dict("type" => "FirstParameter")
-
 # Register the custom type for deserialization
 BuildConstructors.register!(FirstParameter)
+
 
 # Implement deserialize for FirstParameter
 function BuildConstructors.deserialize(::Type{FirstParameter}, all_fields)
