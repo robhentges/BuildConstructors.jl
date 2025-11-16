@@ -6,11 +6,10 @@ using DistributionsHEP
 using OrderedCollections
 using Parameters
 
-# generic methods
+# abstract parameter type
+# and two simple primitives
 export Fixed
 export Running
-export serialize
-export deserialize
 include("parameters.jl")
 
 export Parameter
