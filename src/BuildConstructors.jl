@@ -12,12 +12,18 @@ export Fixed
 export Running
 include("parameters.jl")
 
-export Parameter
+# export Parameter # not exported to avoid conflicts
 export fix!
 export release!
 export update!
-export pickup
+export running_values
 include("fix-release-pickup-update.jl")
+
+export AdvancedParameter
+export running_uncertainties
+export running_upper_boundaries
+export running_lower_boundaries
+include("boundary-error.jl")
 
 export build_model
 export ConstructorOfBW
