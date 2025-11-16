@@ -10,10 +10,13 @@ for func in (:fix!, :release!, :update!)
 end
 
 # collection functionality
-function pickup(c::AbstractConstructor)
-    _list = NamedTuple()
-    for field in fieldnames(typeof(c))
-        _list = merge(_list, pickup(getfield(c, field)))
+for func in (:running_values, :running_uncertainties, :running_upper_boundaries, :running_lower_boundaries)
+    @eval function $func(c::AbstractConstructor)
+        _list = NamedTuple()
+        for field in fieldnames(typeof(c))
+            _list = merge(_list, $func(getfield(c, field)))
+        end
+        return _list
     end
-    return _list
 end
+

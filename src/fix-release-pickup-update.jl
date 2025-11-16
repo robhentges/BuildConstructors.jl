@@ -9,7 +9,7 @@ Parameter(name, value) = Parameter(name, value, false)
 
 
 # no arguments: fix all parameters
-fix!(c) = fix!(c, keys(pickup(c)))
+fix!(c) = fix!(c, keys(running_values(c)))
 # 
 fix!(p::BuildConstructors.AbstractParameter, par_names) = nothing
 fix!(p::Parameter, par_names) =
@@ -19,7 +19,7 @@ fix!(p::NamedTuple, par_names) = nothing
 fix!(p::Number, par_names) = nothing
 
 # no arguments: release all parameters
-release!(c) = release!(c, keys(pickup(c)))
+release!(c) = release!(c, keys(running_values(c)))
 # 
 release!(p::BuildConstructors.AbstractParameter, par_names) = nothing
 release!(p::Parameter, par_names) =
@@ -37,9 +37,9 @@ update!(c::Tuple, pars) = nothing
 update!(c::NamedTuple, pars) = nothing
 update!(c::Number, pars) = nothing
 
-
-pickup(c::Parameter) = NamedTuple{(Symbol(c.name),)}((c.value,))
-pickup(c::Running) = NamedTuple{(Symbol(c.name),)}((c.value,))
-pickup(c::Fixed) = NamedTuple()
-pickup(c::Tuple) = NamedTuple()
-pickup(c::Number) = NamedTuple()
+# retrieve the value of the parameter
+running_values(c::Parameter) = NamedTuple{(Symbol(c.name),)}((c.value,))
+running_values(c::Running) = NamedTuple{(Symbol(c.name),)}((missing,))
+running_values(c::Fixed) = NamedTuple()
+running_values(c::Tuple) = NamedTuple()
+running_values(c::Number) = NamedTuple()
