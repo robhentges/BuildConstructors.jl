@@ -1,5 +1,5 @@
 # Type registry for extensible deserialization
-const _type_registry = Dict{String, Type}()
+const _type_registry = Dict{String,Type}()
 
 """
     register!(type::Type; type_name::String = string(type))

@@ -3,15 +3,15 @@
 ## Breit-Wigner
 
 struct ConstructorOfBW{T1<:AbstractParameter,T2<:AbstractParameter} <: AbstractConstructor
-	description_of_m::T1
-	description_of_Γ::T2
-	support::Tuple{Float64,Float64}
+    description_of_m::T1
+    description_of_Γ::T2
+    support::Tuple{Float64,Float64}
 end
 
 function build_model(c::ConstructorOfBW, pars)
-	m = value(c.description_of_m; pars)
-	Γ = value(c.description_of_Γ; pars)
-	NumericallyIntegrable(e->1/abs2(m^2-e^2 - 1im*m*Γ), c.support) # support needs to be larger than fit range to avoid truncation effects
+    m = value(c.description_of_m; pars)
+    Γ = value(c.description_of_Γ; pars)
+    NumericallyIntegrable(e->1/abs2(m^2-e^2 - 1im*m*Γ), c.support) # support needs to be larger than fit range to avoid truncation effects
 end
 
 
@@ -39,7 +39,8 @@ serialize(c::ConstructorOfBW; pars) = LittleDict(
     "type" => "ConstructorOfBW",
     "description_of_m" => serialize(c.description_of_m; pars),
     "description_of_Γ" => serialize(c.description_of_Γ; pars),
-    "support" => c.support)
+    "support" => c.support,
+)
 
 
 ## Flatte model
@@ -96,7 +97,8 @@ serialize(c::ConstructorOfBW; pars) = LittleDict(
 
 ## Braaten model
 
-struct ConstructorOfBraaten{T1<:AbstractParameter,T2<:AbstractParameter} <: AbstractConstructor
+struct ConstructorOfBraaten{T1<:AbstractParameter,T2<:AbstractParameter} <:
+       AbstractConstructor
     description_of_γre::T1
     description_of_γim::T2
     support::Tuple{Float64,Float64}
@@ -132,14 +134,24 @@ serialize(c::ConstructorOfBraaten; pars) = LittleDict(
     "type" => "ConstructorOfBraaten",
     "description_of_γre" => serialize(c.description_of_γre; pars),
     "description_of_γim" => serialize(c.description_of_γim; pars),
-    "support" => c.support)
+    "support" => c.support,
+)
 
 
 # Resolution
 
 ## Crystal_Ball plus Hyperbolic_Secant
 
-struct ConstructorOfCBpSECH{T1<:AbstractParameter,T2<:AbstractParameter,T3<:AbstractParameter,T4<:AbstractParameter,T5<:AbstractParameter,T6<:AbstractParameter,T7<:AbstractParameter,T8<:AbstractParameter} <: AbstractConstructor
+struct ConstructorOfCBpSECH{
+    T1<:AbstractParameter,
+    T2<:AbstractParameter,
+    T3<:AbstractParameter,
+    T4<:AbstractParameter,
+    T5<:AbstractParameter,
+    T6<:AbstractParameter,
+    T7<:AbstractParameter,
+    T8<:AbstractParameter,
+} <: AbstractConstructor
     description_of_σ1::T1
     description_of_c0::T2
     description_of_c1::T3
@@ -217,7 +229,18 @@ function deserialize(::Type{<:ConstructorOfCBpSECH}, all_fields)
     appendix = merge(appendix, appendix_w)
     # 
     support = all_fields["support"] |> Tuple
-    return ConstructorOfCBpSECH(description_of_σ1, description_of_c0, description_of_c1, description_of_c2, description_of_n, description_of_s, description_of_fr1, description_of_w, support), appendix
+    return ConstructorOfCBpSECH(
+        description_of_σ1,
+        description_of_c0,
+        description_of_c1,
+        description_of_c2,
+        description_of_n,
+        description_of_s,
+        description_of_fr1,
+        description_of_w,
+        support,
+    ),
+    appendix
 end
 
 serialize(c::ConstructorOfCBpSECH; pars) = LittleDict(
@@ -230,11 +253,13 @@ serialize(c::ConstructorOfCBpSECH; pars) = LittleDict(
     "description_of_s" => serialize(c.description_of_s; pars),
     "description_of_fr1" => serialize(c.description_of_fr1; pars),
     "description_of_w" => serialize(c.description_of_w; pars),
-    "support" => c.support)
+    "support" => c.support,
+)
 
 ## Gaussian
 
-struct ConstructorOfGaussian{T1<:AbstractParameter,T2<:AbstractParameter} <: AbstractConstructor
+struct ConstructorOfGaussian{T1<:AbstractParameter,T2<:AbstractParameter} <:
+       AbstractConstructor
     description_of_μ::T1
     description_of_σ::T2
     support::Tuple{Float64,Float64}
@@ -267,7 +292,8 @@ serialize(c::ConstructorOfGaussian; pars) = LittleDict(
     "type" => "ConstructorOfGaussian",
     "description_of_μ" => serialize(c.description_of_μ; pars),
     "description_of_σ" => serialize(c.description_of_σ; pars),
-    "support" => c.support)
+    "support" => c.support,
+)
 
 # Background
 
@@ -298,11 +324,12 @@ end
 serialize(c::ConstructorOfPol1; pars) = LittleDict(
     "type" => "ConstructorOfPol1",
     "description_of_c1C" => serialize(c.description_of_c1C; pars),
-    "support" => c.support)
+    "support" => c.support,
+)
 
 ## 2nd order Chebyshev
 
-struct ConstructorOfPol2{T} <: AbstractConstructor 
+struct ConstructorOfPol2{T} <: AbstractConstructor
     description_of_c1C::T
     description_of_c2C::T
     support::Tuple{Float64,Float64}
@@ -335,7 +362,8 @@ serialize(c::ConstructorOfPol2; pars) = LittleDict(
     "type" => "ConstructorOfPol2",
     "description_of_c1C" => serialize(c.description_of_c1C; pars),
     "description_of_c2C" => serialize(c.description_of_c2C; pars),
-    "support" => c.support)
+    "support" => c.support,
+)
 
 # Auto-register built-in constructor types
 register!(ConstructorOfBW)
