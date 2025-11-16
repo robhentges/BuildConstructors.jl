@@ -7,7 +7,17 @@ using JSON
 
 @testset "BuildConstructors tests" begin
     # let # to be replaced by the line above once working
-    cCBpSECH_running_w = ConstructorOfCBpSECH(Fixed(0.002795), Fixed(2.48), Fixed(474), Fixed(8.1), Fixed(2.0), Fixed(1.3505), Fixed(0.5909), Running("w"), (1.1, 2.5))
+    cCBpSECH_running_w = ConstructorOfCBpSECH(
+        Fixed(0.002795),
+        Fixed(2.48),
+        Fixed(474),
+        Fixed(8.1),
+        Fixed(2.0),
+        Fixed(1.3505),
+        Fixed(0.5909),
+        Running("w"),
+        (1.1, 2.5),
+    )
     model = build_model(cCBpSECH_running_w, (w = 0.5,))
     @test pdf(model, 1.1) == 1.2899706106958533
 
@@ -17,7 +27,7 @@ using JSON
 
 
     cG_running_μ = ConstructorOfGaussian(Running("μ"), Running("σ"), (-0.5, 0.5))
-    model = build_model(cG_running_μ, (μ = 0.0, σ = 0.1,))
+    model = build_model(cG_running_μ, (μ = 0.0, σ = 0.1))
     @test pdf(model, 0.1) == 2.4197086324179997
 
     cG_fixed_μσ = ConstructorOfGaussian(Fixed(0), Fixed(0.1), (-0.5, 0.5))
@@ -29,17 +39,32 @@ end
 
 cM_running_w = ConstructorOfPRBModel(
     ConstructorOfBW(Fixed(3.8), Fixed(0.1), (1.0, 2.6)),
-    ConstructorOfCBpSECH(Fixed(0.002795), Fixed(2.48), Fixed(474), Fixed(8.1), Fixed(2.0), Fixed(1.3505), Fixed(0.5909), Running("w"), (-0.5, 0.5)),
+    ConstructorOfCBpSECH(
+        Fixed(0.002795),
+        Fixed(2.48),
+        Fixed(474),
+        Fixed(8.1),
+        Fixed(2.0),
+        Fixed(1.3505),
+        Fixed(0.5909),
+        Running("w"),
+        (-0.5, 0.5),
+    ),
     ConstructorOfPol1(Fixed(0.1), (1.0, 2.6)),
     Fixed(0.5),
-    (1.1, 2.5)
+    (1.1, 2.5),
 )
 
 model = build_model(cM_running_w, (w = 0.5,))
 @test pdf(model, 1.1) ≈ 0.5049947464186801
 
 
-constructor, pars = load_prb_model_from_json(joinpath(@__DIR__, "..", "data", "database_test.json"), "bw", "CBpSECH", "Pol2")
+constructor, pars = load_prb_model_from_json(
+    joinpath(@__DIR__, "..", "data", "database_test.json"),
+    "bw",
+    "CBpSECH",
+    "Pol2",
+)
 model = build_model(constructor, pars)
 @test pdf(model, 1.1) == 0.015948402929065703
 
@@ -70,14 +95,14 @@ end
 
 let
     c, s = deserialize(Running, all_fields["model_r"]["description_of_σ"])
-    @test s == (σ=0.1,)
+    @test s == (σ = 0.1,)
     @test c isa Running
     @test c.name == "σ"
 end
 
 
 
-let 
+let
     c, s = deserialize(ConstructorOfBW, all_fields["model_p"])
     @test s == NamedTuple()
     @test c isa ConstructorOfBW
@@ -85,14 +110,14 @@ end
 
 
 
-let 
+let
     c, s = deserialize(ConstructorOfGaussian, all_fields["model_r"])
-    @test s == (σ=0.1,)
+    @test s == (σ = 0.1,)
     @test c isa ConstructorOfGaussian
 end
 
 
-let 
+let
     c, s = deserialize(ConstructorOfPRBModel, data["my_model"])
     @test s == (σ = 0.1,)
     @test c isa ConstructorOfPRBModel
@@ -111,7 +136,12 @@ end
 
     #pars = (w = 0.5,)  # starting values for running variables
 
-    cM, pars = load_prb_model_from_json(joinpath(@__DIR__, "..", "data", "database_test.json"), "bw", "CBpSECH", "Pol2")
+    cM, pars = load_prb_model_from_json(
+        joinpath(@__DIR__, "..", "data", "database_test.json"),
+        "bw",
+        "CBpSECH",
+        "Pol2",
+    )
 
     # 2. Serialize to a JSON-like Dict
     ser = serialize(cM; pars)
@@ -139,7 +169,7 @@ end
     @test pdf(model1, 1.1) == 0.015948402929065703
     @test pdf(model2, 1.1) == 0.015948402929065703
 end
-    
+
 @testset "Extend BuildConstructors" begin
     include("test-extend.jl")
 end
