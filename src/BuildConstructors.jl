@@ -28,6 +28,12 @@ export ConstructorOfPol1
 export ConstructorOfPol2
 include("construct_primitives.jl")
 
+export Parameter
+export fix!
+export release!
+export update!
+export pickup
+include("fix-release-pickup-update.jl")
 
 export convert_database_to_prb
 export load_prb_model_from_json
