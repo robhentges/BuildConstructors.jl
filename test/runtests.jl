@@ -5,9 +5,8 @@ using NumericalDistributions
 using JSON
 
 
-
 @testset "BuildConstructors tests" begin
-# let # to be replaced by the line above once working
+    # let # to be replaced by the line above once working
     cCBpSECH_running_w = ConstructorOfCBpSECH(Fixed(0.002795), Fixed(2.48), Fixed(474), Fixed(8.1), Fixed(2.0), Fixed(1.3505), Fixed(0.5909), Running("w"), (1.1, 2.5))
     model = build_model(cCBpSECH_running_w, (w = 0.5,))
     @test pdf(model, 1.1) == 1.2899706106958533
@@ -140,7 +139,11 @@ end
     @test pdf(model1, 1.1) == 0.015948402929065703
     @test pdf(model2, 1.1) == 0.015948402929065703
 end
-
+    
 @testset "Extend BuildConstructors" begin
     include("test-extend.jl")
+end
+
+@testset "Flexible Parameter" begin
+    include("test-parameter.jl")
 end

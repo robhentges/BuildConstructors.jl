@@ -2,7 +2,7 @@
 
 ## Breit-Wigner
 
-struct ConstructorOfBW{T1<:AbstractParameter,T2<:AbstractParameter}
+struct ConstructorOfBW{T1<:AbstractParameter,T2<:AbstractParameter} <: AbstractConstructor
 	description_of_m::T1
 	description_of_Γ::T2
 	support::Tuple{Float64,Float64}
@@ -96,7 +96,7 @@ serialize(c::ConstructorOfBW; pars) = LittleDict(
 
 ## Braaten model
 
-struct ConstructorOfBraaten{T1<:AbstractParameter,T2<:AbstractParameter}
+struct ConstructorOfBraaten{T1<:AbstractParameter,T2<:AbstractParameter} <: AbstractConstructor
     description_of_γre::T1
     description_of_γim::T2
     support::Tuple{Float64,Float64}
@@ -139,7 +139,7 @@ serialize(c::ConstructorOfBraaten; pars) = LittleDict(
 
 ## Crystal_Ball plus Hyperbolic_Secant
 
-struct ConstructorOfCBpSECH{T1<:AbstractParameter,T2<:AbstractParameter,T3<:AbstractParameter,T4<:AbstractParameter,T5<:AbstractParameter,T6<:AbstractParameter,T7<:AbstractParameter,T8<:AbstractParameter}
+struct ConstructorOfCBpSECH{T1<:AbstractParameter,T2<:AbstractParameter,T3<:AbstractParameter,T4<:AbstractParameter,T5<:AbstractParameter,T6<:AbstractParameter,T7<:AbstractParameter,T8<:AbstractParameter} <: AbstractConstructor
     description_of_σ1::T1
     description_of_c0::T2
     description_of_c1::T3
@@ -234,7 +234,7 @@ serialize(c::ConstructorOfCBpSECH; pars) = LittleDict(
 
 ## Gaussian
 
-struct ConstructorOfGaussian{T1<:AbstractParameter,T2<:AbstractParameter}
+struct ConstructorOfGaussian{T1<:AbstractParameter,T2<:AbstractParameter} <: AbstractConstructor
     description_of_μ::T1
     description_of_σ::T2
     support::Tuple{Float64,Float64}
@@ -273,7 +273,7 @@ serialize(c::ConstructorOfGaussian; pars) = LittleDict(
 
 ## 1st order Chebyshev
 
-struct ConstructorOfPol1{T}
+struct ConstructorOfPol1{T} <: AbstractConstructor
     description_of_c1C::T
     support::Tuple{Float64,Float64}
 end
@@ -302,7 +302,7 @@ serialize(c::ConstructorOfPol1; pars) = LittleDict(
 
 ## 2nd order Chebyshev
 
-struct ConstructorOfPol2{T}
+struct ConstructorOfPol2{T} <: AbstractConstructor 
     description_of_c1C::T
     description_of_c2C::T
     support::Tuple{Float64,Float64}

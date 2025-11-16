@@ -15,8 +15,9 @@ value(p::Running; pars) = getproperty(pars, Symbol(p.name))
 register!(Fixed)
 register!(Running)
 
+abstract type AbstractConstructor end
 
-struct ConstructorOfPRBModel{PHYS,RES,BG,T}
+struct ConstructorOfPRBModel{PHYS,RES,BG,T} <: AbstractConstructor
 	model_p::PHYS
 	model_r::RES
 	model_b::BG
@@ -44,7 +45,6 @@ function deserialize(::Type{<:Running}, all_fields)
     starting_value = all_fields["starting_value"]
     Running(name), NamedTuple{(Symbol(name),)}((starting_value,))
 end
-
 
 
 function deserialize(::Type{<:ConstructorOfPRBModel}, all_fields)
