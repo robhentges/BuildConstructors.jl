@@ -38,7 +38,7 @@ include("phys-res-bgd-model.jl")
 
 # IO
 # registration mechanism
-include("register_type.jl")
+include("register-type.jl")
 
 # serialization/deserialization
 export serialize
@@ -48,6 +48,6 @@ include("io.jl")
 # tooling
 export convert_database_to_prb
 export load_prb_model_from_json
-include("load_model_from_json.jl")
+include("load-model-from-json.jl")
 
 end # module
