@@ -14,6 +14,11 @@ register!(ConstructorOfPol2)
 # complex model
 register!(ConstructorOfPRBModel)
 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+serialize(c::Fixed; pars) = LittleDict("type" => "Fixed", "value" => c.value)
+serialize(c::Running; pars) =
+    LittleDict("type" => "Running", "name" => c.name, "starting_value" => value(c; pars))
 
 function deserialize(::Type{<:Fixed}, all_fields)
     value = all_fields["value"]
@@ -27,9 +32,15 @@ function deserialize(::Type{<:Running}, all_fields)
 end
 
 
-serialize(c::Fixed; pars) = LittleDict("type" => "Fixed", "value" => c.value)
-serialize(c::Running; pars) =
-    LittleDict("type" => "Running", "name" => c.name, "starting_value" => value(c; pars))
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+serialize(c::ConstructorOfGaussian; pars) = LittleDict(
+    "type" => "ConstructorOfGaussian",
+    "description_of_μ" => serialize(c.description_of_μ; pars),
+    "description_of_σ" => serialize(c.description_of_σ; pars),
+    "support" => c.support,
+)
 
 
 
@@ -51,16 +62,13 @@ function deserialize(::Type{<:ConstructorOfGaussian}, all_fields)
     return ConstructorOfGaussian(description_of_μ, description_of_σ, support), appendix
 end
 
-serialize(c::ConstructorOfGaussian; pars) = LittleDict(
-    "type" => "ConstructorOfGaussian",
-    "description_of_μ" => serialize(c.description_of_μ; pars),
-    "description_of_σ" => serialize(c.description_of_σ; pars),
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+serialize(c::ConstructorOfPol1; pars) = LittleDict(
+    "type" => "ConstructorOfPol1",
+    "description_of_c1C" => serialize(c.description_of_c1C; pars),
     "support" => c.support,
 )
-
-
-
-
 
 
 function deserialize(::Type{<:ConstructorOfPol1}, all_fields)
@@ -75,13 +83,14 @@ function deserialize(::Type{<:ConstructorOfPol1}, all_fields)
     return ConstructorOfPol1(description_of_c1C, support), appendix
 end
 
-serialize(c::ConstructorOfPol1; pars) = LittleDict(
-    "type" => "ConstructorOfPol1",
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+serialize(c::ConstructorOfPol2; pars) = LittleDict(
+    "type" => "ConstructorOfPol2",
     "description_of_c1C" => serialize(c.description_of_c1C; pars),
+    "description_of_c2C" => serialize(c.description_of_c2C; pars),
     "support" => c.support,
 )
-
-
 
 function deserialize(::Type{<:ConstructorOfPol2}, all_fields)
     appendix = NamedTuple()
@@ -100,16 +109,20 @@ function deserialize(::Type{<:ConstructorOfPol2}, all_fields)
     return ConstructorOfPol2(description_of_c1C, description_of_c2C, support), appendix
 end
 
-serialize(c::ConstructorOfPol2; pars) = LittleDict(
-    "type" => "ConstructorOfPol2",
-    "description_of_c1C" => serialize(c.description_of_c1C; pars),
-    "description_of_c2C" => serialize(c.description_of_c2C; pars),
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+serialize(c::ConstructorOfCBpSECH; pars) = LittleDict(
+    "type" => "ConstructorOfCBpSECH",
+    "description_of_σ1" => serialize(c.description_of_σ1; pars),
+    "description_of_c0" => serialize(c.description_of_c0; pars),
+    "description_of_c1" => serialize(c.description_of_c1; pars),
+    "description_of_c2" => serialize(c.description_of_c2; pars),
+    "description_of_n" => serialize(c.description_of_n; pars),
+    "description_of_s" => serialize(c.description_of_s; pars),
+    "description_of_fr1" => serialize(c.description_of_fr1; pars),
+    "description_of_w" => serialize(c.description_of_w; pars),
     "support" => c.support,
 )
-
-
-
-
 
 function deserialize(::Type{<:ConstructorOfCBpSECH}, all_fields)
     appendix = NamedTuple()
@@ -169,37 +182,7 @@ function deserialize(::Type{<:ConstructorOfCBpSECH}, all_fields)
     appendix
 end
 
-serialize(c::ConstructorOfCBpSECH; pars) = LittleDict(
-    "type" => "ConstructorOfCBpSECH",
-    "description_of_σ1" => serialize(c.description_of_σ1; pars),
-    "description_of_c0" => serialize(c.description_of_c0; pars),
-    "description_of_c1" => serialize(c.description_of_c1; pars),
-    "description_of_c2" => serialize(c.description_of_c2; pars),
-    "description_of_n" => serialize(c.description_of_n; pars),
-    "description_of_s" => serialize(c.description_of_s; pars),
-    "description_of_fr1" => serialize(c.description_of_fr1; pars),
-    "description_of_w" => serialize(c.description_of_w; pars),
-    "support" => c.support,
-)
-
-
-
-function deserialize(::Type{<:ConstructorOfBraaten}, all_fields)
-    appendix = NamedTuple()
-    # 
-    description_of_γre_dict = all_fields["description_of_γre"]
-    type_γre = _type_from_string(description_of_γre_dict["type"])
-    description_of_γre, appendix_γre = deserialize(type_γre, description_of_γre_dict)
-    appendix = merge(appendix, appendix_γre)
-    # 
-    description_of_γim_dict = all_fields["description_of_γim"]
-    type_γim = _type_from_string(description_of_γim_dict["type"])
-    description_of_γim, appendix_γim = deserialize(type_γim, description_of_γim_dict)
-    appendix = merge(appendix, appendix_γim)
-    # 
-    support = all_fields["support"] |> Tuple
-    return ConstructorOfBraaten(description_of_γre, description_of_γim, support), appendix
-end
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
 serialize(c::ConstructorOfBraaten; pars) = LittleDict(
     "type" => "ConstructorOfBraaten",
@@ -207,8 +190,6 @@ serialize(c::ConstructorOfBraaten; pars) = LittleDict(
     "description_of_γim" => serialize(c.description_of_γim; pars),
     "support" => c.support,
 )
-
-
 
 
 function deserialize(::Type{<:ConstructorOfBW}, all_fields)
@@ -228,6 +209,7 @@ function deserialize(::Type{<:ConstructorOfBW}, all_fields)
     return ConstructorOfBW(description_of_m, description_of_Γ, support), appendix
 end
 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
 serialize(c::ConstructorOfBW; pars) = LittleDict(
     "type" => "ConstructorOfBW",
@@ -236,9 +218,33 @@ serialize(c::ConstructorOfBW; pars) = LittleDict(
     "support" => c.support,
 )
 
+function deserialize(::Type{<:ConstructorOfBraaten}, all_fields)
+    appendix = NamedTuple()
+    # 
+    description_of_γre_dict = all_fields["description_of_γre"]
+    type_γre = _type_from_string(description_of_γre_dict["type"])
+    description_of_γre, appendix_γre = deserialize(type_γre, description_of_γre_dict)
+    appendix = merge(appendix, appendix_γre)
+    # 
+    description_of_γim_dict = all_fields["description_of_γim"]
+    type_γim = _type_from_string(description_of_γim_dict["type"])
+    description_of_γim, appendix_γim = deserialize(type_γim, description_of_γim_dict)
+    appendix = merge(appendix, appendix_γim)
+    # 
+    support = all_fields["support"] |> Tuple
+    return ConstructorOfBraaten(description_of_γre, description_of_γim, support), appendix
+end
 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
-
+serialize(c::ConstructorOfPRBModel; pars) = LittleDict(
+    "type" => "ConstructorOfPRBModel",
+    "model_p" => serialize(c.model_p; pars),
+    "model_r" => serialize(c.model_r; pars),
+    "model_b" => serialize(c.model_b; pars),
+    "description_of_fs" => serialize(c.description_of_fs; pars),
+    "support" => c.support,
+)
 
 function deserialize(::Type{<:ConstructorOfPRBModel}, all_fields)
     appendix = NamedTuple()
@@ -267,13 +273,3 @@ function deserialize(::Type{<:ConstructorOfPRBModel}, all_fields)
     support = all_fields["support"] |> Tuple
     ConstructorOfPRBModel(model_p, model_r, model_b, description_of_fs, support), appendix
 end
-
-
-serialize(c::ConstructorOfPRBModel; pars) = LittleDict(
-    "type" => "ConstructorOfPRBModel",
-    "model_p" => serialize(c.model_p; pars),
-    "model_r" => serialize(c.model_r; pars),
-    "model_b" => serialize(c.model_b; pars),
-    "description_of_fs" => serialize(c.description_of_fs; pars),
-    "support" => c.support,
-)
