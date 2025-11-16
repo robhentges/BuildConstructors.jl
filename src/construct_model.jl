@@ -15,25 +15,6 @@ value(p::Running; pars) = getproperty(pars, Symbol(p.name))
 register!(Fixed)
 register!(Running)
 
-
-
-
-
-function deserialize(::Type{<:Fixed}, all_fields)
-    value = all_fields["value"]
-    Fixed(value), NamedTuple()
-end
-
-function deserialize(::Type{<:Running}, all_fields)
-    name = all_fields["name"]
-    starting_value = all_fields["starting_value"]
-    Running(name), NamedTuple{(Symbol(name),)}((starting_value,))
-end
-
-
-
-
-
 abstract type AbstractConstructor end
 
 struct ConstructorOfPRBModel{PHYS,RES,BG,T} <: AbstractConstructor
@@ -51,6 +32,18 @@ function build_model(c::ConstructorOfPRBModel, pars)
 	r_conv_p = fft_convolve(r, p)
 	fs = value(c.description_of_fs; pars)
 	truncated(MixtureModel([r_conv_p, b], [fs, 1-fs]), c.support[1], c.support[2])
+end
+
+
+function deserialize(::Type{<:Fixed}, all_fields)
+    value = all_fields["value"]
+    Fixed(value), NamedTuple()
+end
+
+function deserialize(::Type{<:Running}, all_fields)
+    name = all_fields["name"]
+    starting_value = all_fields["starting_value"]
+    Running(name), NamedTuple{(Symbol(name),)}((starting_value,))
 end
 
 
