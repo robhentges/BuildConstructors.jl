@@ -54,14 +54,16 @@ function parse_field_declaration(expr)
 end
 
 # Helper: Parse constant fields from parameters expression
-function parse_constant_fields_from_params(params_expr, constant_fields, body_ref)
+# Returns (typed_fields, parametric_fields) where:
+# - typed_fields: [(field_name, type_expr), ...] for fields with explicit types
+# - parametric_fields: [field_name, ...] for fields without types (become type parameters)
+function parse_constant_fields_from_params(params_expr, constant_fields, parametric_fields, body_ref)
     for kw_arg in params_expr.args
         if kw_arg isa LineNumberNode
             continue
         elseif kw_arg isa Symbol
-            # Symbols without type annotation are invalid - fields must have types
-            error("Invalid constant field declaration. Expected 'field_name::Type', got: $kw_arg. " *
-                  "Constant fields must be declared with a type annotation (e.g., $kw_arg::Type)")
+            # Symbols without type annotation become parametric fields
+            push!(parametric_fields, kw_arg)
         elseif kw_arg isa Expr
             field_pair = parse_field_declaration(kw_arg)
             if field_pair !== nothing
@@ -76,20 +78,25 @@ function parse_constant_fields_from_params(params_expr, constant_fields, body_re
                 continue
             end
             
-            error("Invalid constant field declaration. Expected 'field_name::Type', got: $kw_arg")
+            error("Invalid constant field declaration. Expected 'field_name::Type' or 'field_name', got: $kw_arg")
         end
     end
 end
 
 # Helper: Parse constant fields from tuple expression
-function parse_constant_fields_from_tuple(tuple_expr, constant_fields)
+function parse_constant_fields_from_tuple(tuple_expr, constant_fields, parametric_fields)
     field_list = tuple_expr.head == :tuple ? tuple_expr.args : tuple_expr.args[2:end]
     for field_decl in field_list
-        field_pair = parse_field_declaration(field_decl)
-        if field_pair !== nothing
-            push!(constant_fields, field_pair)
+        if field_decl isa Symbol
+            # Symbols without type annotation become parametric fields
+            push!(parametric_fields, field_decl)
         else
-            error("Invalid constant field declaration. Expected 'field_name::Type', got: $field_decl")
+            field_pair = parse_field_declaration(field_decl)
+            if field_pair !== nothing
+                push!(constant_fields, field_pair)
+            else
+                error("Invalid constant field declaration. Expected 'field_name::Type' or 'field_name', got: $field_decl")
+            end
         end
     end
 end
@@ -140,19 +147,32 @@ function find_field_usages(expr, declared_fields, param_names)
 end
 
 # Helper: Generate type parameters for struct
-function generate_type_parameters(n_params)
+# Returns (param_type_params, parametric_type_params) where:
+# - param_type_params: type parameters for AbstractParameter fields (T1, T2, ...)
+# - parametric_type_params: type parameters for parametric fields (P1, P2, ...)
+function generate_type_parameters(n_params, n_parametric_fields)
     # Use fully qualified BuildConstructors.AbstractParameter
     abstract_param_ref = Expr(:., :BuildConstructors, QuoteNode(:AbstractParameter))
-    type_param_exprs = Expr[]
+    
+    # Type parameters for parameter fields: T1<:AbstractParameter, T2<:AbstractParameter, ...
+    param_type_params = Expr[]
     for i in 1:n_params
         type_param = Symbol("T", i)
-        push!(type_param_exprs, Expr(:<:, type_param, abstract_param_ref))
+        push!(param_type_params, Expr(:<:, type_param, abstract_param_ref))
     end
-    return type_param_exprs
+    
+    # Type parameters for parametric fields: P1, P2, ... (no constraint)
+    parametric_type_params = Any[]  # Can be Symbols (no constraint) or Exprs (with constraint)
+    for i in 1:n_parametric_fields
+        type_param = Symbol("P", i)
+        push!(parametric_type_params, type_param)
+    end
+    
+    return param_type_params, parametric_type_params
 end
 
 # Helper: Generate struct fields
-function generate_struct_fields(params, constant_fields, type_param_exprs)
+function generate_struct_fields(params, constant_fields, parametric_fields, param_type_params, parametric_type_params)
     struct_fields = Expr(:block)
     
     # Add parameter fields: description_of_{param}::T{i}
@@ -162,19 +182,27 @@ function generate_struct_fields(params, constant_fields, type_param_exprs)
         push!(struct_fields.args, Expr(:(::), field_name, type_param))
     end
     
-    # Add constant fields (preserve order)
+    # Add typed constant fields (preserve order)
     for (field_name, field_type) in constant_fields
         push!(struct_fields.args, Expr(:(::), field_name, field_type))
+    end
+    
+    # Add parametric fields: field_name::P{i}
+    for (i, field_name) in enumerate(parametric_fields)
+        type_param = Symbol("P", i)
+        push!(struct_fields.args, Expr(:(::), field_name, type_param))
     end
     
     return struct_fields
 end
 
 # Helper: Generate struct definition
-function generate_struct_definition(constructor_name, type_param_exprs, struct_fields)
+function generate_struct_definition(constructor_name, param_type_params, parametric_type_params, struct_fields)
     # Use fully qualified BuildConstructors.AbstractConstructor
     abstract_constructor_ref = Expr(:., :BuildConstructors, QuoteNode(:AbstractConstructor))
-    struct_name_with_params = Expr(:curly, constructor_name, type_param_exprs...)
+    # Combine all type parameters: T1, T2, ..., P1, P2, ...
+    all_type_params = vcat(param_type_params, parametric_type_params)
+    struct_name_with_params = Expr(:curly, constructor_name, all_type_params...)
     return Expr(:struct, false,
         Expr(:<:, struct_name_with_params, abstract_constructor_ref),
         struct_fields
@@ -224,14 +252,15 @@ macro with_parameters(model_name, params_expr...)
     mod = __module__
     mod_name = nameof(mod)
     
-    # Extract parameter names, constant fields, and body
+    # Extract parameter names, constant fields, parametric fields, and body
     params = Symbol[]
-    constant_fields = Pair{Symbol, Union{Symbol, Expr}}[]
+    constant_fields = Pair{Symbol, Union{Symbol, Expr}}[]  # Fields with explicit types
+    parametric_fields = Symbol[]  # Fields without types (become type parameters)
     body = Ref{Union{Nothing, Expr}}(nothing)
     
     # Handle case where model_name is a parameters expression (parentheses with semicolon syntax)
     if model_name isa Expr && model_name.head == :parameters
-        parse_constant_fields_from_params(model_name, constant_fields, body)
+        parse_constant_fields_from_params(model_name, constant_fields, parametric_fields, body)
         if length(params_expr) > 0
             model_name = params_expr[1]
             params_expr = params_expr[2:end]
@@ -251,9 +280,9 @@ macro with_parameters(model_name, params_expr...)
             body[] = Expr(:block, arg.args[2:end]...)
             break
         elseif arg isa Expr && arg.head == :parameters
-            parse_constant_fields_from_params(arg, constant_fields, body)
+            parse_constant_fields_from_params(arg, constant_fields, parametric_fields, body)
         elseif arg isa Expr && (arg.head == :tuple || (arg.head == :call && arg.args[1] == :tuple))
-            parse_constant_fields_from_tuple(arg, constant_fields)
+            parse_constant_fields_from_tuple(arg, constant_fields, parametric_fields)
         else
             error("Unexpected argument format in @with_parameters: $arg")
         end
@@ -269,14 +298,16 @@ macro with_parameters(model_name, params_expr...)
     
     # Validate field declarations and usage
     declared_fields = Set([pair.first for pair in constant_fields])
+    declared_parametric_fields = Set(parametric_fields)
+    all_declared_fields = union(declared_fields, declared_parametric_fields)
     param_names = Set(params)  # Parameter names are valid symbols, not fields
-    used_fields = find_field_usages(body[], declared_fields, param_names)
+    used_fields = find_field_usages(body[], all_declared_fields, param_names)
     
-    # Check that all used fields are declared
+    # Check that all used fields are declared (either typed or parametric)
     for field in used_fields
-        if !(field in declared_fields)
+        if !(field in all_declared_fields)
             error("Field '$(field)' is used in the body but not declared. " *
-                  "Please declare it after the semicolon: $(field)::Type")
+                  "Please declare it after the semicolon: $(field)::Type or $(field)")
         end
     end
     
@@ -284,9 +315,9 @@ macro with_parameters(model_name, params_expr...)
     model_sym = model_name isa Symbol ? model_name : error("Model name must be a symbol")
     constructor_name = Symbol("ConstructorOf", model_sym)
     
-    type_param_exprs = generate_type_parameters(length(params))
-    struct_fields = generate_struct_fields(params, constant_fields, type_param_exprs)
-    struct_def = generate_struct_definition(constructor_name, type_param_exprs, struct_fields)
+    param_type_params, parametric_type_params = generate_type_parameters(length(params), length(parametric_fields))
+    struct_fields = generate_struct_fields(params, constant_fields, parametric_fields, param_type_params, parametric_type_params)
+    struct_def = generate_struct_definition(constructor_name, param_type_params, parametric_type_params, struct_fields)
     build_model_def = generate_build_model_function(constructor_name, params, body[], mod_name)
     
     return Expr(:block,

@@ -91,7 +91,22 @@ cm = ConstructorOfComplexModel(Fixed(0.0), Fixed(0.1), (-0.5, 0.5), 0.0, 10)
     @test model isa Distribution
 end
 
-# Test Case 5: Validation tests - should fail
+# Test Case 5: Parametric fields (fields without type annotations)
+@with_parameters(ScaleMacro, scale; D, begin
+    build_model(_.D, pars) * scale
+end)
+
+@testset "Macro with parametric fields" begin
+    # Test that parametric field works
+    cs = ConstructorOfScaleMacro(Fixed(2.0), ConstructorOfGaussian(Fixed(0.0), Fixed(0.1), (-0.5, 0.5)))
+    @test cs.description_of_scale isa Fixed
+    @test cs.D isa ConstructorOfGaussian
+    model = build_model(cs, NamedTuple())
+    @test model isa Distribution
+    @test pdf(model, 0.0) > 0
+end
+
+# Test Case 6: Validation tests - should fail
 @testset "Macro validation errors" begin
     # Helper to test that a macro call throws an error
     function test_macro_error(expr, expected_msg)
@@ -105,29 +120,21 @@ end
         return err
     end
     
-    # Test: Field declared without type should fail
-    err1 = test_macro_error(:(@with_parameters(ScaleMacro, scale; D, begin
-        build_model(D) * scale
-    end)), "type annotation")
-    @test err1 !== nothing
-    @test err1 isa ErrorException
-    @test occursin("type annotation", string(err1))
-    
     # Test: Field used directly (not via _.field) should fail
-    err2 = test_macro_error(:(@with_parameters(ScaleMacro2, scale; D::AbstractConstructor, begin
+    err1 = test_macro_error(:(@with_parameters(ScaleMacro2, scale; D::AbstractConstructor, begin
         build_model(D) * scale  # Should use _.D
     end)), "_.field_name")
-    @test err2 !== nothing
-    @test err2 isa ErrorException
-    @test occursin("_.field_name", string(err2)) || occursin("must be accessed", string(err2))
+    @test err1 !== nothing
+    @test err1 isa ErrorException
+    @test occursin("_.field_name", string(err1)) || occursin("must be accessed", string(err1))
     
     # Test: Field used via _.field but not declared should fail
-    err3 = test_macro_error(:(@with_parameters(ScaleMacro3, scale, begin
+    err2 = test_macro_error(:(@with_parameters(ScaleMacro3, scale, begin
         build_model(_.D) * scale  # D not declared
     end)), "not declared")
-    @test err3 !== nothing
-    @test err3 isa ErrorException
-    @test occursin("not declared", string(err3)) || occursin("Please declare", string(err3))
+    @test err2 !== nothing
+    @test err2 isa ErrorException
+    @test occursin("not declared", string(err2)) || occursin("Please declare", string(err2))
 end
 
 println("All macro tests passed!")
