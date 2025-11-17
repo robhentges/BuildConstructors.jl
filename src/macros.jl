@@ -58,6 +58,10 @@ function parse_constant_fields_from_params(params_expr, constant_fields, body_re
     for kw_arg in params_expr.args
         if kw_arg isa LineNumberNode
             continue
+        elseif kw_arg isa Symbol
+            # Symbols without type annotation are invalid - fields must have types
+            error("Invalid constant field declaration. Expected 'field_name::Type', got: $kw_arg. " *
+                  "Constant fields must be declared with a type annotation (e.g., $kw_arg::Type)")
         elseif kw_arg isa Expr
             field_pair = parse_field_declaration(kw_arg)
             if field_pair !== nothing
@@ -91,8 +95,10 @@ function parse_constant_fields_from_tuple(tuple_expr, constant_fields)
 end
 
 # Helper: Find all field usages (_.field_name) in expression tree and transform to c.field_name
-function find_field_usages(expr)
+# Also validates that fields are accessed via _.field pattern, not directly
+function find_field_usages(expr, declared_fields, param_names)
     used_fields = Set{Symbol}()
+    invalid_usages = Symbol[]  # Fields used directly without _.field pattern
     
     function traverse_and_transform(e)
         if e isa Expr
@@ -111,10 +117,25 @@ function find_field_usages(expr)
             for arg in e.args
                 traverse_and_transform(arg)
             end
+        elseif e isa Symbol
+            # Check if this symbol is a declared field being used directly (invalid)
+            # But ignore if it's a parameter name (those are valid)
+            if e in declared_fields && !(e in param_names)
+                push!(invalid_usages, e)
+            end
         end
     end
     
     traverse_and_transform(expr)
+    
+    # Report invalid usages
+    if !isempty(invalid_usages)
+        unique_invalid = unique(invalid_usages)
+        field_list = join(["'$(f)'" for f in unique_invalid], ", ")
+        error("Field(s) $field_list are used directly but must be accessed via '_.field_name' pattern. " *
+              "For example, use '_.$(unique_invalid[1])' instead of '$(unique_invalid[1])'")
+    end
+    
     return used_fields
 end
 
@@ -150,8 +171,9 @@ function generate_struct_fields(params, constant_fields, type_param_exprs)
 end
 
 # Helper: Generate struct definition
-function generate_struct_definition(constructor_name, type_param_exprs, struct_fields, mod_name)
-    abstract_constructor_ref = Expr(:., mod_name, QuoteNode(:AbstractConstructor))
+function generate_struct_definition(constructor_name, type_param_exprs, struct_fields)
+    # Use fully qualified BuildConstructors.AbstractConstructor
+    abstract_constructor_ref = Expr(:., :BuildConstructors, QuoteNode(:AbstractConstructor))
     struct_name_with_params = Expr(:curly, constructor_name, type_param_exprs...)
     return Expr(:struct, false,
         Expr(:<:, struct_name_with_params, abstract_constructor_ref),
@@ -245,9 +267,12 @@ macro with_parameters(model_name, params_expr...)
         error("@with_parameters requires at least one parameter name")
     end
     
-    # Validate field declarations
-    used_fields = find_field_usages(body[])
+    # Validate field declarations and usage
     declared_fields = Set([pair.first for pair in constant_fields])
+    param_names = Set(params)  # Parameter names are valid symbols, not fields
+    used_fields = find_field_usages(body[], declared_fields, param_names)
+    
+    # Check that all used fields are declared
     for field in used_fields
         if !(field in declared_fields)
             error("Field '$(field)' is used in the body but not declared. " *
@@ -261,7 +286,7 @@ macro with_parameters(model_name, params_expr...)
     
     type_param_exprs = generate_type_parameters(length(params))
     struct_fields = generate_struct_fields(params, constant_fields, type_param_exprs)
-    struct_def = generate_struct_definition(constructor_name, type_param_exprs, struct_fields, mod_name)
+    struct_def = generate_struct_definition(constructor_name, type_param_exprs, struct_fields)
     build_model_def = generate_build_model_function(constructor_name, params, body[], mod_name)
     
     return Expr(:block,

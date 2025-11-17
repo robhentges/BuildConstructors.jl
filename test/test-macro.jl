@@ -11,7 +11,6 @@ import BuildConstructors: AbstractParameter, AbstractConstructor, value, build_m
 @with_parameters(GaussianMacro, μ, σ; support::Tuple{Float64,Float64}, begin
     truncated(Normal(μ, σ), _.support[1], _.support[2])
 end)
-
 # Test instantiation
 cg_macro = ConstructorOfGaussianMacro(Fixed(0.0), Running("σ"), (-0.5, 0.5))
 cg_manual = ConstructorOfGaussian(Fixed(0.0), Running("σ"), (-0.5, 0.5))
@@ -90,6 +89,45 @@ cm = ConstructorOfComplexModel(Fixed(0.0), Fixed(0.1), (-0.5, 0.5), 0.0, 10)
     @test cm.n_bins == 10
     model = build_model(cm, NamedTuple())
     @test model isa Distribution
+end
+
+# Test Case 5: Validation tests - should fail
+@testset "Macro validation errors" begin
+    # Helper to test that a macro call throws an error
+    function test_macro_error(expr, expected_msg)
+        err = try
+            eval(expr)
+            return nothing
+        catch e
+            @assert e isa LoadError && e.error isa ErrorException
+            return e.error
+        end
+        return err
+    end
+    
+    # Test: Field declared without type should fail
+    err1 = test_macro_error(:(@with_parameters(ScaleMacro, scale; D, begin
+        build_model(D) * scale
+    end)), "type annotation")
+    @test err1 !== nothing
+    @test err1 isa ErrorException
+    @test occursin("type annotation", string(err1))
+    
+    # Test: Field used directly (not via _.field) should fail
+    err2 = test_macro_error(:(@with_parameters(ScaleMacro2, scale; D::AbstractConstructor, begin
+        build_model(D) * scale  # Should use _.D
+    end)), "_.field_name")
+    @test err2 !== nothing
+    @test err2 isa ErrorException
+    @test occursin("_.field_name", string(err2)) || occursin("must be accessed", string(err2))
+    
+    # Test: Field used via _.field but not declared should fail
+    err3 = test_macro_error(:(@with_parameters(ScaleMacro3, scale, begin
+        build_model(_.D) * scale  # D not declared
+    end)), "not declared")
+    @test err3 !== nothing
+    @test err3 isa ErrorException
+    @test occursin("not declared", string(err3)) || occursin("Please declare", string(err3))
 end
 
 println("All macro tests passed!")
