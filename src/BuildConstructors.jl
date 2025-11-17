@@ -33,6 +33,10 @@ export ConstructorOfGaussian
 export ConstructorOfPol1
 export ConstructorOfPol2
 include("abstract-constructor.jl")
+
+export @with_parameters
+include("macros.jl")
+
 include("primitives.jl")
 
 # combined model
