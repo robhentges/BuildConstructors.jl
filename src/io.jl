@@ -1,7 +1,8 @@
 # parameter types
 register!(Fixed)
 register!(Running)
-register!(Parameter)
+register!(FlexibleParameter)
+register!(AdvancedParameter)
 
 # thin wrappers of primitives
 register!(ConstructorOfBW)
