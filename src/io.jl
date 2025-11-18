@@ -2,6 +2,7 @@
 register!(Fixed)
 register!(Running)
 register!(Parameter)
+register!(AdvancedParameter)
 
 # thin wrappers of primitives
 register!(ConstructorOfBW)

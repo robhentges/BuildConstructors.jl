@@ -8,22 +8,20 @@ using Parameters
 
 # abstract parameter type
 # and two simple primitives
-export Fixed
-export Running
-include("parameters.jl")
 
-# export Parameter # not exported to avoid conflicts
 export fix!
 export release!
 export update!
 export running_values
-include("fix-release-pickup-update.jl")
-
-export AdvancedParameter
 export running_uncertainties
 export running_upper_boundaries
 export running_lower_boundaries
-include("boundary-error.jl")
+include("abstract-parameters.jl")
+
+export Fixed
+export Running
+export AdvancedParameter
+include("concrete-parameters.jl")
 
 export build_model
 export ConstructorOfBW
@@ -33,6 +31,10 @@ export ConstructorOfGaussian
 export ConstructorOfPol1
 export ConstructorOfPol2
 include("abstract-constructor.jl")
+
+export @with_parameters
+include("macros.jl")
+
 include("primitives.jl")
 
 # combined model

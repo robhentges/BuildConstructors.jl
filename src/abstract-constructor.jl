@@ -10,7 +10,12 @@ for func in (:fix!, :release!, :update!)
 end
 
 # collection functionality
-for func in (:running_values, :running_uncertainties, :running_upper_boundaries, :running_lower_boundaries)
+for func in (
+    :running_values,
+    :running_uncertainties,
+    :running_upper_boundaries,
+    :running_lower_boundaries,
+)
     @eval function $func(c::AbstractConstructor)
         _list = NamedTuple()
         for field in fieldnames(typeof(c))
@@ -19,4 +24,3 @@ for func in (:running_values, :running_uncertainties, :running_upper_boundaries,
         return _list
     end
 end
-
