@@ -54,7 +54,7 @@ end
 
 struct ConstantField
     name::Symbol
-    type_expr::Union{Symbol, Expr}
+    type_expr::Union{Symbol,Expr}
 end
 
 # Helper: Parse a single field declaration
@@ -65,11 +65,11 @@ function parse_field(expr)
     elseif expr isa Expr && expr.head == :(::) && length(expr.args) == 2
         field_name = expr.args[1]
         field_type = expr.args[2]
-        
+
         if !(field_name isa Symbol)
             error("Field name must be a symbol, got: $field_name")
         end
-        
+
         # Check if type is :P (parameter field)
         if field_type == :P
             return ParameterField(field_name)
@@ -78,7 +78,9 @@ function parse_field(expr)
             return ConstantField(field_name, field_type)
         end
     else
-        error("Invalid field declaration. Expected 'field', 'field::P', or 'field::Type', got: $expr")
+        error(
+            "Invalid field declaration. Expected 'field', 'field::P', or 'field::Type', got: $expr",
+        )
     end
 end
 
@@ -87,7 +89,7 @@ end
 function find_field_usages(expr, all_declared_fields, param_names)
     used_fields = Set{Symbol}()
     invalid_usages = Symbol[]  # Fields used directly without _.field pattern
-    
+
     function traverse_and_transform(e)
         if e isa Expr
             # Check for _.field_name pattern and transform to c.field_name
@@ -113,17 +115,19 @@ function find_field_usages(expr, all_declared_fields, param_names)
             end
         end
     end
-    
+
     traverse_and_transform(expr)
-    
+
     # Report invalid usages
     if !isempty(invalid_usages)
         unique_invalid = unique(invalid_usages)
         field_list = join(["'$(f)'" for f in unique_invalid], ", ")
-        error("Field(s) $field_list are used directly but must be accessed via '_.field_name' pattern. " *
-              "For example, use '_.$(unique_invalid[1])' instead of '$(unique_invalid[1])'")
+        error(
+            "Field(s) $field_list are used directly but must be accessed via '_.field_name' pattern. " *
+            "For example, use '_.$(unique_invalid[1])' instead of '$(unique_invalid[1])'",
+        )
     end
-    
+
     return used_fields
 end
 
@@ -134,32 +138,32 @@ end
 function generate_type_parameters(n_params, n_parametric_fields)
     # Use fully qualified BuildConstructors.AbstractParameter
     abstract_param_ref = Expr(:., :BuildConstructors, QuoteNode(:AbstractParameter))
-    
+
     # Type parameters for parametric fields: P1, P2, ... (no constraint)
     parametric_type_params = Any[]
-    for i in 1:n_parametric_fields
+    for i = 1:n_parametric_fields
         type_param = Symbol("P", i)
         push!(parametric_type_params, type_param)
     end
-    
+
     # Type parameters for parameter fields: T1<:AbstractParameter, T2<:AbstractParameter, ...
     param_type_params = Expr[]
-    for i in 1:n_params
+    for i = 1:n_params
         type_param = Symbol("T", i)
         push!(param_type_params, Expr(:<:, type_param, abstract_param_ref))
     end
-    
+
     return param_type_params, parametric_type_params
 end
 
 # Helper: Generate struct fields in reordered format: parametric first, then parameters, then constants
 function generate_struct_fields(ordered_fields, param_type_params, parametric_type_params)
     struct_fields = Expr(:block)
-    
+
     # Track indices for type parameters
     param_idx = 1
     parametric_idx = 1
-    
+
     # First pass: add parametric fields
     for field in ordered_fields
         if field isa ParametricField
@@ -168,7 +172,7 @@ function generate_struct_fields(ordered_fields, param_type_params, parametric_ty
             parametric_idx += 1
         end
     end
-    
+
     # Second pass: add parameter fields
     for field in ordered_fields
         if field isa ParameterField
@@ -178,90 +182,100 @@ function generate_struct_fields(ordered_fields, param_type_params, parametric_ty
             param_idx += 1
         end
     end
-    
+
     # Third pass: add constant fields
     for field in ordered_fields
         if field isa ConstantField
             push!(struct_fields.args, Expr(:(::), field.name, field.type_expr))
         end
     end
-    
+
     return struct_fields
 end
 
 # Helper: Generate struct definition
-function generate_struct_definition(constructor_name, param_type_params, parametric_type_params, struct_fields)
+function generate_struct_definition(
+    constructor_name,
+    param_type_params,
+    parametric_type_params,
+    struct_fields,
+)
     # Use fully qualified BuildConstructors.AbstractConstructor
     abstract_constructor_ref = Expr(:., :BuildConstructors, QuoteNode(:AbstractConstructor))
     # Combine all type parameters: P1, P2, ..., T1, T2, ... (parametric first, then parameters)
     all_type_params = vcat(parametric_type_params, param_type_params)
     struct_name_with_params = Expr(:curly, constructor_name, all_type_params...)
-    return Expr(:struct, false,
+    return Expr(
+        :struct,
+        false,
         Expr(:<:, struct_name_with_params, abstract_constructor_ref),
-        struct_fields
+        struct_fields,
     )
 end
 
 # Helper: Generate build_model function
 function generate_build_model_function(constructor_name, ordered_fields, body, mod_name)
     value_ref = Expr(:., mod_name, QuoteNode(:value))
-    
+
     # Extract parameters: param = value(c.description_of_{param}; pars)
     param_extractions = Expr(:block)
     param_names = Symbol[]
-    
+
     for field in ordered_fields
         if field isa ParameterField
             field_name = Symbol("description_of_", field.name)
             push!(param_names, field.name)
-            push!(param_extractions.args, 
-                Expr(:(=), field.name, 
-                    Expr(:call, value_ref, 
+            push!(
+                param_extractions.args,
+                Expr(
+                    :(=),
+                    field.name,
+                    Expr(
+                        :call,
+                        value_ref,
                         Expr(:parameters, :pars),
-                        Expr(:., :c, QuoteNode(field_name))
-                    )
-                )
+                        Expr(:., :c, QuoteNode(field_name)),
+                    ),
+                ),
             )
         end
     end
-    
+
     # Combine parameter extractions with user body
     build_model_body = Expr(:block)
     append!(build_model_body.args, param_extractions.args)
-    
+
     # Add user body
     if body isa Expr && body.head == :block
         append!(build_model_body.args, body.args)
     else
         push!(build_model_body.args, body)
     end
-    
+
     # Generate function definition
-    return Expr(:function,
-        Expr(:call, :build_model,
-            Expr(:(::), :c, constructor_name),
-            :pars
-        ),
-        build_model_body
+    return Expr(
+        :function,
+        Expr(:call, :build_model, Expr(:(::), :c, constructor_name), :pars),
+        build_model_body,
     )
 end
 
 macro with_parameters(model_name_expr, params_expr...)
     mod = __module__
     mod_name = nameof(mod)
-    
+
     # Parse model name and fields
     model_name = nothing
-    ordered_fields = Union{ParametricField, ParameterField, ConstantField}[]
-    body = Ref{Union{Nothing, Expr}}(nothing)
-    
+    ordered_fields = Union{ParametricField,ParameterField,ConstantField}[]
+    body = Ref{Union{Nothing,Expr}}(nothing)
+
     # When using @with_parameters(ModelName; fields...), Julia puts:
     # - model_name_expr = Expr(:parameters, ...fields...)  
     # - params_expr[1] = :ModelName (the model name comes after the parameters)
     # When using @with_parameters ModelName; fields..., Julia puts:
     # - model_name_expr = :ModelName
     # - params_expr[1] = Expr(:parameters, ...fields...)
-    
+
     if model_name_expr isa Expr && model_name_expr.head == :parameters
         # Syntax: @with_parameters(ModelName; fields...) - parameters expression is first
         # Model name should be in params_expr
@@ -273,7 +287,9 @@ macro with_parameters(model_name_expr, params_expr...)
                     continue
                 elseif field_expr isa Expr && field_expr.head == :block
                     body[] = field_expr
-                elseif field_expr isa Expr && field_expr.head == :call && field_expr.args[1] == :begin
+                elseif field_expr isa Expr &&
+                       field_expr.head == :call &&
+                       field_expr.args[1] == :begin
                     body[] = Expr(:block, field_expr.args[2:end]...)
                 else
                     field = parse_field(field_expr)
@@ -281,7 +297,9 @@ macro with_parameters(model_name_expr, params_expr...)
                 end
             end
         else
-            error("@with_parameters: model name missing. Expected: @with_parameters(ModelName; fields..., begin ... end)")
+            error(
+                "@with_parameters: model name missing. Expected: @with_parameters(ModelName; fields..., begin ... end)",
+            )
         end
     elseif model_name_expr isa Symbol
         # Syntax: @with_parameters ModelName; fields... - model name is first
@@ -297,7 +315,9 @@ macro with_parameters(model_name_expr, params_expr...)
                         continue
                     elseif field_expr isa Expr && field_expr.head == :block
                         body[] = field_expr
-                    elseif field_expr isa Expr && field_expr.head == :call && field_expr.args[1] == :begin
+                    elseif field_expr isa Expr &&
+                           field_expr.head == :call &&
+                           field_expr.args[1] == :begin
                         body[] = Expr(:block, field_expr.args[2:end]...)
                     else
                         field = parse_field(field_expr)
@@ -321,7 +341,7 @@ macro with_parameters(model_name_expr, params_expr...)
     else
         error("Model name must be a symbol, got: $model_name_expr")
     end
-    
+
     # Validation
     if body[] === nothing
         error("@with_parameters requires a begin...end block with model-building logic")
@@ -329,11 +349,11 @@ macro with_parameters(model_name_expr, params_expr...)
     if isempty(ordered_fields)
         error("@with_parameters requires at least one field")
     end
-    
+
     # Collect all declared field names and parameter names
     all_declared_fields = Set{Symbol}()
     param_names = Symbol[]
-    
+
     for field in ordered_fields
         if field isa ParametricField
             push!(all_declared_fields, field.name)
@@ -344,33 +364,39 @@ macro with_parameters(model_name_expr, params_expr...)
             push!(all_declared_fields, field.name)
         end
     end
-    
+
     param_names_set = Set(param_names)
     used_fields = find_field_usages(body[], all_declared_fields, param_names_set)
-    
+
     # Check that all used fields are declared
     for field in used_fields
         if !(field in all_declared_fields)
-            error("Field '$(field)' is used in the body but not declared. " *
-                  "Please declare it: $(field), $(field)::P, or $(field)::Type")
+            error(
+                "Field '$(field)' is used in the body but not declared. " *
+                "Please declare it: $(field), $(field)::P, or $(field)::Type",
+            )
         end
     end
-    
+
     # Count fields by type
     n_params = count(f -> f isa ParameterField, ordered_fields)
     n_parametric = count(f -> f isa ParametricField, ordered_fields)
-    
+
     # Generate code
     constructor_name = Symbol("ConstructorOf", model_name)
-    
-    param_type_params, parametric_type_params = generate_type_parameters(n_params, n_parametric)
-    struct_fields = generate_struct_fields(ordered_fields, param_type_params, parametric_type_params)
-    struct_def = generate_struct_definition(constructor_name, param_type_params, parametric_type_params, struct_fields)
-    build_model_def = generate_build_model_function(constructor_name, ordered_fields, body[], mod_name)
-    
-    return Expr(:block,
-        esc(struct_def),
-        esc(build_model_def),
-        Expr(:line, __source__)
+
+    param_type_params, parametric_type_params =
+        generate_type_parameters(n_params, n_parametric)
+    struct_fields =
+        generate_struct_fields(ordered_fields, param_type_params, parametric_type_params)
+    struct_def = generate_struct_definition(
+        constructor_name,
+        param_type_params,
+        parametric_type_params,
+        struct_fields,
     )
+    build_model_def =
+        generate_build_model_function(constructor_name, ordered_fields, body[], mod_name)
+
+    return Expr(:block, esc(struct_def), esc(build_model_def), Expr(:line, __source__))
 end

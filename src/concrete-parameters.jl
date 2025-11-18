@@ -27,8 +27,7 @@ mutable struct FlexibleParameter <: BuildConstructors.AbstractParameter
     value::Float64
     fixed::Bool
 end
-value(p::FlexibleParameter; pars) =
-    p.fixed ? p.value : getproperty(pars, Symbol(p.name))
+value(p::FlexibleParameter; pars) = p.fixed ? p.value : getproperty(pars, Symbol(p.name))
 FlexibleParameter(name, value) = FlexibleParameter(name, value, false)
 
 fix!(p::FlexibleParameter, par_names) =
@@ -56,9 +55,8 @@ mutable struct AdvancedParameter <: AbstractParameter
     uncertainty::Float64
     fixed::Bool
 end
-value(p::AdvancedParameter; pars) = 
-    p.fixed ? p.value : getproperty(pars, Symbol(p.name))
-AdvancedParameter(name, value; boundaries=(Inf, -Inf), uncertainty=1.0) =
+value(p::AdvancedParameter; pars) = p.fixed ? p.value : getproperty(pars, Symbol(p.name))
+AdvancedParameter(name, value; boundaries = (Inf, -Inf), uncertainty = 1.0) =
     AdvancedParameter(name, value, boundaries, uncertainty, false)
 
 fix!(p::AdvancedParameter, par_names) =
@@ -72,6 +70,9 @@ update!(c::AdvancedParameter, pars) =
     nothing
 
 running_values(c::AdvancedParameter) = NamedTuple{(Symbol(c.name),)}((c.value,))
-running_uncertainties(p::AdvancedParameter) = NamedTuple{(Symbol(p.name),)}((p.uncertainty,))
-running_upper_boundaries(p::AdvancedParameter) = NamedTuple{(Symbol(p.name),)}((p.boundaries[2],))
-running_lower_boundaries(p::AdvancedParameter) = NamedTuple{(Symbol(p.name),)}((p.boundaries[1],))
+running_uncertainties(p::AdvancedParameter) =
+    NamedTuple{(Symbol(p.name),)}((p.uncertainty,))
+running_upper_boundaries(p::AdvancedParameter) =
+    NamedTuple{(Symbol(p.name),)}((p.boundaries[2],))
+running_lower_boundaries(p::AdvancedParameter) =
+    NamedTuple{(Symbol(p.name),)}((p.boundaries[1],))

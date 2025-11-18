@@ -8,9 +8,15 @@ import BuildConstructors: AbstractParameter, AbstractConstructor, value, build_m
 
 # Test Case 1: Simple 2-parameter model (Gaussian)
 # This should generate the same as the manual ConstructorOfGaussian
-@with_parameters(GaussianMacro; μ::P, σ::P, support::Tuple{Float64,Float64}, begin
-    truncated(Normal(μ, σ), _.support[1], _.support[2])
-end)
+@with_parameters(
+    GaussianMacro;
+    μ::P,
+    σ::P,
+    support::Tuple{Float64,Float64},
+    begin
+        truncated(Normal(μ, σ), _.support[1], _.support[2])
+    end
+)
 # Test instantiation - order: parametric fields, parameter fields, constant fields
 cg_macro = ConstructorOfGaussianMacro(Fixed(0.0), Running("σ"), (-0.5, 0.5))
 cg_manual = ConstructorOfGaussian(Fixed(0.0), Running("σ"), (-0.5, 0.5))
@@ -20,17 +26,17 @@ cg_manual = ConstructorOfGaussian(Fixed(0.0), Running("σ"), (-0.5, 0.5))
     @test cg_macro.description_of_μ isa Fixed
     @test cg_macro.description_of_σ isa Running
     @test cg_macro.support == (-0.5, 0.5)
-    
+
     # Test build_model functionality
     pars = (σ = 0.1,)
     model_macro = build_model(cg_macro, pars)
     model_manual = build_model(cg_manual, pars)
-    
+
     # Test that models produce same results
     @test pdf(model_macro, 0.0) ≈ pdf(model_manual, 0.0)
     @test pdf(model_macro, 0.1) ≈ pdf(model_manual, 0.1)
     @test pdf(model_macro, -0.1) ≈ pdf(model_manual, -0.1)
-    
+
     # Test with all fixed parameters
     cg_macro_fixed = ConstructorOfGaussianMacro(Fixed(0.0), Fixed(0.1), (-0.5, 0.5))
     cg_manual_fixed = ConstructorOfGaussian(Fixed(0.0), Fixed(0.1), (-0.5, 0.5))
@@ -40,9 +46,14 @@ cg_manual = ConstructorOfGaussian(Fixed(0.0), Running("σ"), (-0.5, 0.5))
 end
 
 # Test Case 2: 1-parameter model (Pol1)
-@with_parameters(Pol1Macro; c1C::P, support::Tuple{Float64,Float64}, begin
-    Chebyshev([1, c1C], _.support[1], _.support[2])
-end)
+@with_parameters(
+    Pol1Macro;
+    c1C::P,
+    support::Tuple{Float64,Float64},
+    begin
+        Chebyshev([1, c1C], _.support[1], _.support[2])
+    end
+)
 
 cp1_macro = ConstructorOfPol1Macro(Running("c1C"), (1.1, 2.5))
 cp1_manual = ConstructorOfPol1(Running("c1C"), (1.1, 2.5))
@@ -51,7 +62,7 @@ cp1_manual = ConstructorOfPol1(Running("c1C"), (1.1, 2.5))
     pars = (c1C = 0.01,)
     model_macro = build_model(cp1_macro, pars)
     model_manual = build_model(cp1_manual, pars)
-    
+
     @test pdf(model_macro, 1.5) ≈ pdf(model_manual, 1.5)
 end
 
@@ -71,15 +82,23 @@ ctm = ConstructorOfTestModelMacro(Fixed(1.0), Fixed(2.0))
 end
 
 # Test Case 4: Multiple constant fields
-@with_parameters(ComplexModel; μ::P, σ::P, support::Tuple{Float64,Float64}, threshold::Float64, n_bins::Int, begin
-    # Use multiple constant fields
-    if μ > _.threshold
-        truncated(Normal(μ, σ), _.support[1], _.support[2])
-    else
-        # Use n_bins for something
-        Normal(μ, σ)
+@with_parameters(
+    ComplexModel;
+    μ::P,
+    σ::P,
+    support::Tuple{Float64,Float64},
+    threshold::Float64,
+    n_bins::Int,
+    begin
+        # Use multiple constant fields
+        if μ > _.threshold
+            truncated(Normal(μ, σ), _.support[1], _.support[2])
+        else
+            # Use n_bins for something
+            Normal(μ, σ)
+        end
     end
-end)
+)
 
 # Order: parametric fields (none), parameter fields (μ, σ), constant fields (support, threshold, n_bins)
 cm = ConstructorOfComplexModel(Fixed(0.0), Fixed(0.1), (-0.5, 0.5), 0.0, 10)
@@ -100,7 +119,10 @@ end)
 @testset "Macro with parametric fields" begin
     # Test that parametric field works
     # Order: parametric fields (D), parameter fields (scale)
-    cs = ConstructorOfScaleMacro(ConstructorOfGaussian(Fixed(0.0), Fixed(0.1), (-0.5, 0.5)), Fixed(2.0))
+    cs = ConstructorOfScaleMacro(
+        ConstructorOfGaussian(Fixed(0.0), Fixed(0.1), (-0.5, 0.5)),
+        Fixed(2.0),
+    )
     @test cs.D isa ConstructorOfGaussian
     @test cs.description_of_scale isa Fixed
     model = build_model(cs, NamedTuple())
@@ -121,23 +143,34 @@ end
         end
         return err
     end
-    
+
     # Test: Field used directly (not via _.field) should fail
-    err1 = test_macro_error(:(@with_parameters(ScaleMacro2; D::AbstractConstructor, scale::P, begin
-        build_model(D) * scale  # Should use _.D
-    end)), "_.field_name")
+    err1 = test_macro_error(
+        :(@with_parameters(
+            ScaleMacro2;
+            D::AbstractConstructor,
+            scale::P,
+            begin
+                build_model(D) * scale  # Should use _.D
+            end
+        )),
+        "_.field_name",
+    )
     @test err1 !== nothing
     @test err1 isa ErrorException
-    @test occursin("_.field_name", string(err1)) || occursin("must be accessed", string(err1))
-    
+    @test occursin("_.field_name", string(err1)) ||
+          occursin("must be accessed", string(err1))
+
     # Test: Field used via _.field but not declared should fail
-    err2 = test_macro_error(:(@with_parameters(ScaleMacro3; scale::P, begin
-        build_model(_.D) * scale  # D not declared
-    end)), "not declared")
+    err2 = test_macro_error(
+        :(@with_parameters(ScaleMacro3; scale::P, begin
+            build_model(_.D) * scale  # D not declared
+        end)),
+        "not declared",
+    )
     @test err2 !== nothing
     @test err2 isa ErrorException
     @test occursin("not declared", string(err2)) || occursin("Please declare", string(err2))
 end
 
 println("All macro tests passed!")
-

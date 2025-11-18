@@ -8,8 +8,8 @@ constructor = ConstructorOfPRBModel(
     ConstructorOfBW(FlexibleParameter("m", 2.0), FlexibleParameter("Γ", 0.2), (1.0, 2.5)),
     ConstructorOfGaussian(Fixed(0.0), Running("σ"), (-0.5, 0.5)),
     ConstructorOfPol1(FlexibleParameter("c1", 0.3), (1.0, 2.5)),
-    AdvancedParameter("fs", 0.5; boundaries=(0.0, 1.0), uncertainty=0.01),
-    (1.0, 2.5)
+    AdvancedParameter("fs", 0.5; boundaries = (0.0, 1.0), uncertainty = 0.01),
+    (1.0, 2.5),
 )
 
 @testset "Parameter is mutable" begin
@@ -84,15 +84,16 @@ end
     # Test on Running
     r = Running("σ")
     @test running_uncertainties(r) === (σ = missing,)
-    
+
     # Test on Fixed
     f = Fixed(0.5)
     @test running_uncertainties(f) == NamedTuple()
-    
+
     # Test on constructor - should collect from all fields
     # The constructor has: FlexibleParameter("m"), FlexibleParameter("Γ"), Fixed(0.0), Running("σ"), FlexibleParameter("c1"), Parameter("fs")
     # Only Running("σ") should contribute
-    @test running_uncertainties(constructor) === (m = missing, Γ = missing, σ = missing, c1 = missing, fs = 0.01)
+    @test running_uncertainties(constructor) ===
+          (m = missing, Γ = missing, σ = missing, c1 = missing, fs = 0.01)
     @test keys(running_uncertainties(constructor)) == keys(running_values(constructor))
 end
 
@@ -100,11 +101,11 @@ end
     # Test on individual Parameter
     p = FlexibleParameter("test", 1.0)
     @test running_upper_boundaries(p) == (test = Inf,)
-    
+
     # Test on Running
     r = Running("σ")
     @test running_upper_boundaries(r) == (σ = Inf,)
-    
+
     # Test on Fixed
     f = Fixed(0.5)
     @test running_upper_boundaries(f) == NamedTuple()
@@ -126,15 +127,15 @@ end
     # Test on individual Parameter
     p = FlexibleParameter("test", 1.0)
     @test running_lower_boundaries(p) == (test = -Inf,)
-    
+
     # Test on Running
     r = Running("σ")
     @test running_lower_boundaries(r) == (σ = -Inf,)
-    
+
     # Test on Fixed
     f = Fixed(0.5)
     @test running_lower_boundaries(f) == NamedTuple()
-    
+
     # Test on constructor - should collect from all fields
     # The constructor has: FlexibleParameter("m"), FlexibleParameter("Γ"), Fixed(0.0), Running("σ"), FlexibleParameter("c1"), Parameter("fs")
     # All Parameters and Running should contribute with -Inf

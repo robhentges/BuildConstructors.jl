@@ -144,10 +144,10 @@ running_lower_boundaries(p::AbstractParameter) = NamedTuple()
 
 
 # when applying the methods to any fields it fields, it does nothing 
-fix!(p, par_names) = nothing 
-release!(p, par_names) = nothing 
-update!(p, pars) = nothing 
-running_values(p) = NamedTuple() 
+fix!(p, par_names) = nothing
+release!(p, par_names) = nothing
+update!(p, pars) = nothing
+running_values(p) = NamedTuple()
 running_uncertainties(p) = NamedTuple()
 running_upper_boundaries(p) = NamedTuple()
 running_lower_boundaries(p) = NamedTuple()
@@ -182,4 +182,3 @@ release!(constructor)  # Release all parameters
 ```
 """
 release!(c) = release!(c, keys(running_values(c)))
-
