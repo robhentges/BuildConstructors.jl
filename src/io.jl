@@ -32,14 +32,19 @@ function deserialize(::Type{<:Running}, all_fields)
     Running(name), NamedTuple{(Symbol(name),)}((starting_value,))
 end
 
-serialize(c::FlexibleParameter; pars) =
-    LittleDict("type" => "FlexibleParameter", "name" => c.name, "starting_value" => value(c; pars), "fixed" => c.fixed)
+serialize(c::FlexibleParameter; pars) = LittleDict(
+    "type" => "FlexibleParameter",
+    "name" => c.name,
+    "starting_value" => value(c; pars),
+    "fixed" => c.fixed,
+)
 
 function deserialize(::Type{<:FlexibleParameter}, all_fields)
     name = all_fields["name"]
     starting_value = all_fields["starting_value"]
     fixed = get(all_fields, "fixed", false)
-    FlexibleParameter(name, starting_value, fixed), NamedTuple{(Symbol(name),)}((starting_value,))
+    FlexibleParameter(name, starting_value, fixed),
+    NamedTuple{(Symbol(name),)}((starting_value,))
 end
 
 
