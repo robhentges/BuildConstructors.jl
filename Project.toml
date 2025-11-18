@@ -1,7 +1,7 @@
 name = "BuildConstructors"
 uuid = "63b9b590-f22f-4e79-810f-ea9ba6849c26"
 authors = ["Robert Hentges <robert.hentges@cern.ch>"]
-version = "0.2.0"
+version = "0.3.0"
 
 [deps]
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
