@@ -1,7 +1,7 @@
 # parameter types
 register!(Fixed)
 register!(Running)
-register!(FlexibleParameter)
+register!(Parameter)
 register!(AdvancedParameter)
 
 # thin wrappers of primitives

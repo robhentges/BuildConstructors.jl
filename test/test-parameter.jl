@@ -5,9 +5,9 @@ using Test
 import BuildConstructors: Parameter
 
 constructor = ConstructorOfPRBModel(
-    ConstructorOfBW(FlexibleParameter("m", 2.0), FlexibleParameter("Γ", 0.2), (1.0, 2.5)),
+    ConstructorOfBW(Parameter("m", 2.0), Parameter("Γ", 0.2), (1.0, 2.5)),
     ConstructorOfGaussian(Fixed(0.0), Running("σ"), (-0.5, 0.5)),
-    ConstructorOfPol1(FlexibleParameter("c1", 0.3), (1.0, 2.5)),
+    ConstructorOfPol1(Parameter("c1", 0.3), (1.0, 2.5)),
     AdvancedParameter("fs", 0.5; boundaries = (0.0, 1.0), uncertainty = 0.01),
     (1.0, 2.5),
 )
@@ -90,7 +90,7 @@ end
     @test running_uncertainties(f) == NamedTuple()
 
     # Test on constructor - should collect from all fields
-    # The constructor has: FlexibleParameter("m"), FlexibleParameter("Γ"), Fixed(0.0), Running("σ"), FlexibleParameter("c1"), Parameter("fs")
+    # The constructor has: Parameter("m"), Parameter("Γ"), Fixed(0.0), Running("σ"), Parameter("c1"), Parameter("fs")
     # Only Running("σ") should contribute
     @test running_uncertainties(constructor) ===
           (m = missing, Γ = missing, σ = missing, c1 = missing, fs = 0.01)
@@ -99,7 +99,7 @@ end
 
 @testset "running_upper_boundaries" begin
     # Test on individual Parameter
-    p = FlexibleParameter("test", 1.0)
+    p = Parameter("test", 1.0)
     @test running_upper_boundaries(p) == (test = Inf,)
 
     # Test on Running
@@ -111,7 +111,7 @@ end
     @test running_upper_boundaries(f) == NamedTuple()
 
     # Test on constructor - should collect from all fields
-    # The constructor has: FlexibleParameter("m"), FlexibleParameter("Γ"), Fixed(0.0), Running("σ"), FlexibleParameter("c1"), Parameter("fs")
+    # The constructor has: Parameter("m"), Parameter("Γ"), Fixed(0.0), Running("σ"), Parameter("c1"), Parameter("fs")
     # All Parameters and Running should contribute with Inf
     upper_bounds = running_upper_boundaries(constructor)
     @test keys(upper_bounds) == keys(running_values(constructor))
@@ -125,7 +125,7 @@ end
 
 @testset "running_lower_boundaries" begin
     # Test on individual Parameter
-    p = FlexibleParameter("test", 1.0)
+    p = Parameter("test", 1.0)
     @test running_lower_boundaries(p) == (test = -Inf,)
 
     # Test on Running
@@ -137,7 +137,7 @@ end
     @test running_lower_boundaries(f) == NamedTuple()
 
     # Test on constructor - should collect from all fields
-    # The constructor has: FlexibleParameter("m"), FlexibleParameter("Γ"), Fixed(0.0), Running("σ"), FlexibleParameter("c1"), Parameter("fs")
+    # The constructor has: Parameter("m"), Parameter("Γ"), Fixed(0.0), Running("σ"), Parameter("c1"), Parameter("fs")
     # All Parameters and Running should contribute with -Inf
     lower_bounds = running_lower_boundaries(constructor)
     @test keys(lower_bounds) == keys(running_values(constructor))

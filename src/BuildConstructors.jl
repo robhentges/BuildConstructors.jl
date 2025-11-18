@@ -21,7 +21,6 @@ include("abstract-parameters.jl")
 export Fixed
 export Running
 export AdvancedParameter
-export FlexibleParameter
 include("concrete-parameters.jl")
 
 export build_model
