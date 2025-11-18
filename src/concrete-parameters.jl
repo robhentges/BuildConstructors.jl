@@ -22,27 +22,27 @@ running_lower_boundaries(c::Running) = NamedTuple{(Symbol(c.name),)}((-Inf,))
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # mutable parameter, can be fixed and released
-mutable struct Parameter <: BuildConstructors.AbstractParameter
+mutable struct FlexibleParameter <: AbstractParameter
     name::String
     value::Float64
     fixed::Bool
 end
-value(p::Parameter; pars) = p.fixed ? p.value : getproperty(pars, Symbol(p.name))
-Parameter(name, value) = Parameter(name, value, false)
+value(p::FlexibleParameter; pars) = p.fixed ? p.value : getproperty(pars, Symbol(p.name))
+FlexibleParameter(name, value) = FlexibleParameter(name, value, false)
 
-fix!(p::Parameter, par_names) =
+fix!(p::FlexibleParameter, par_names) =
     Symbol(p.name) ∈ par_names ? setfield!(p, :fixed, true) : nothing
-release!(p::Parameter, par_names) =
+release!(p::FlexibleParameter, par_names) =
     Symbol(p.name) ∈ par_names ? setfield!(p, :fixed, false) : nothing
 
-update!(c::Parameter, pars) =
+update!(c::FlexibleParameter, pars) =
     Symbol(c.name) ∈ keys(pars) ? setfield!(c, :value, getproperty(pars, Symbol(c.name))) :
     nothing
 
-running_values(c::Parameter) = NamedTuple{(Symbol(c.name),)}((c.value,))
-running_uncertainties(p::Parameter) = NamedTuple{(Symbol(p.name),)}((missing,))
-running_upper_boundaries(p::Parameter) = NamedTuple{(Symbol(p.name),)}((Inf,))
-running_lower_boundaries(p::Parameter) = NamedTuple{(Symbol(p.name),)}((-Inf,))
+running_values(c::FlexibleParameter) = NamedTuple{(Symbol(c.name),)}((c.value,))
+running_uncertainties(p::FlexibleParameter) = NamedTuple{(Symbol(p.name),)}((missing,))
+running_upper_boundaries(p::FlexibleParameter) = NamedTuple{(Symbol(p.name),)}((Inf,))
+running_lower_boundaries(p::FlexibleParameter) = NamedTuple{(Symbol(p.name),)}((-Inf,))
 
 
 
