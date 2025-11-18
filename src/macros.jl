@@ -190,12 +190,14 @@ function generate_struct_fields(ordered_fields, param_type_params, parametric_ty
 
     # First pass: add parametric fields
     for field in ordered_fields
-        field_type(field) == :parametric && (parametric_idx = add_struct_field!(struct_fields, field, parametric_idx))
+        field_type(field) == :parametric &&
+            (parametric_idx = add_struct_field!(struct_fields, field, parametric_idx))
     end
 
     # Second pass: add parameter fields
     for field in ordered_fields
-        field_type(field) == :parameter && (param_idx = add_struct_field!(struct_fields, field, param_idx))
+        field_type(field) == :parameter &&
+            (param_idx = add_struct_field!(struct_fields, field, param_idx))
     end
 
     # Third pass: add constant fields
@@ -228,7 +230,12 @@ end
 
 # Multiple dispatch: Extract parameter from field (only for ParameterField)
 # Mutates param_extractions and param_names
-function extract_parameter!(param_extractions, param_names, field::ParameterField, value_ref)
+function extract_parameter!(
+    param_extractions,
+    param_names,
+    field::ParameterField,
+    value_ref,
+)
     field_name = Symbol("description_of_", field.name)
     push!(param_names, field.name)
     push!(
@@ -261,8 +268,10 @@ get_parameter_name(::ParametricField) = nothing
 get_parameter_name(::ConstantField) = nothing
 
 # Multiple dispatch: Count fields by type using dispatch
-count_field_type(::Type{ParameterField}, fields) = count(f -> field_type(f) == :parameter, fields)
-count_field_type(::Type{ParametricField}, fields) = count(f -> field_type(f) == :parametric, fields)
+count_field_type(::Type{ParameterField}, fields) =
+    count(f -> field_type(f) == :parameter, fields)
+count_field_type(::Type{ParametricField}, fields) =
+    count(f -> field_type(f) == :parametric, fields)
 
 # Helper: Generate build_model function
 function generate_build_model_function(constructor_name, ordered_fields, body, mod_name)
@@ -304,14 +313,16 @@ function parse_macro_arguments(model_name_expr, params_expr...)
     # Normalize input: handle both @with_parameters(ModelName; ...) and @with_parameters ModelName; ...
     # Julia parses these differently, so we need to handle both cases
     args_to_process = Any[]
-    
+
     if model_name_expr isa Expr && model_name_expr.head == :parameters
         # Syntax: @with_parameters(ModelName; fields...) - model name is in params_expr
         if !isempty(params_expr) && params_expr[1] isa Symbol
             model_name = params_expr[1]
             args_to_process = model_name_expr.args
         else
-            error("@with_parameters: model name missing. Expected: @with_parameters(ModelName; fields..., begin ... end)")
+            error(
+                "@with_parameters: model name missing. Expected: @with_parameters(ModelName; fields..., begin ... end)",
+            )
         end
     elseif model_name_expr isa Symbol
         # Syntax: @with_parameters ModelName; fields... - model name is first
@@ -336,7 +347,7 @@ function parse_macro_arguments(model_name_expr, params_expr...)
         if arg isa Expr && arg.head == :parameters
             for field_expr in arg.args
                 field_expr isa LineNumberNode && continue
-                
+
                 if is_body_block(field_expr)
                     body = extract_body_block(field_expr)
                     break
@@ -347,7 +358,7 @@ function parse_macro_arguments(model_name_expr, params_expr...)
             end
             # If body was found in parameters expression, stop processing
             body !== nothing && break
-        # Handle direct field declarations (no semicolon syntax)
+            # Handle direct field declarations (no semicolon syntax)
         elseif arg isa Symbol || (arg isa Expr && arg.head == :(::))
             field = parse_field(arg)
             push!(ordered_fields, field)
@@ -372,7 +383,8 @@ macro with_parameters(model_name_expr, params_expr...)
     mod_name = nameof(mod)
 
     # Parse arguments sequentially: model name, fields, and body
-    model_name, ordered_fields, body = parse_macro_arguments(model_name_expr, params_expr...)
+    model_name, ordered_fields, body =
+        parse_macro_arguments(model_name_expr, params_expr...)
 
     # Collect all declared field names and parameter names
     all_declared_fields = Set{Symbol}()

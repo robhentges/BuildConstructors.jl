@@ -4,8 +4,6 @@ using Distributions
 using NumericalDistributions
 using JSON
 
-import BuildConstructors: Parameter
-
 @testset "BuildConstructors tests" begin
     # let # to be replaced by the line above once working
     cCBpSECH_running_w = ConstructorOfCBpSECH(

@@ -20,6 +20,7 @@ include("abstract-parameters.jl")
 
 export Fixed
 export Running
+export FlexibleParameter
 export AdvancedParameter
 include("concrete-parameters.jl")
 
