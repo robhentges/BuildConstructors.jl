@@ -274,8 +274,8 @@ count_field_type(::Type{ParametricField}, fields) =
     count(f -> field_type(f) == :parametric, fields)
 
 # Helper: Generate build_model function
-function generate_build_model_function(constructor_name, ordered_fields, body, mod_name)
-    value_ref = Expr(:., mod_name, QuoteNode(:value))
+function generate_build_model_function(constructor_name, ordered_fields, body)
+    value_ref = Expr(:., :BuildConstructors, QuoteNode(:value))
 
     # Extract parameters: param = value(c.description_of_{param}; pars)
     param_extractions = Expr(:block)
@@ -379,9 +379,6 @@ function parse_macro_arguments(model_name_expr, params_expr...)
 end
 
 macro with_parameters(model_name_expr, params_expr...)
-    mod = __module__
-    mod_name = nameof(mod)
-
     # Parse arguments sequentially: model name, fields, and body
     model_name, ordered_fields, body =
         parse_macro_arguments(model_name_expr, params_expr...)
@@ -428,7 +425,7 @@ macro with_parameters(model_name_expr, params_expr...)
         struct_fields,
     )
     build_model_def =
-        generate_build_model_function(constructor_name, ordered_fields, body, mod_name)
+        generate_build_model_function(constructor_name, ordered_fields, body)
 
     return Expr(:block, esc(struct_def), esc(build_model_def), Expr(:line, __source__))
 end
