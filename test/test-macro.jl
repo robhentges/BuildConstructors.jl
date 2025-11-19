@@ -3,9 +3,6 @@ using BuildConstructors
 using Distributions
 using Test
 
-# Import types and functions needed for macro expansion
-import BuildConstructors: AbstractParameter, AbstractConstructor, value, build_model
-
 # Test Case 1: Simple 2-parameter model (Gaussian)
 # This should generate the same as the manual ConstructorOfGaussian
 @with_parameters(
